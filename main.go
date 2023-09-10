@@ -2,36 +2,78 @@ package main
 
 import (
 	"fmt"
-	"go-gin/controllers"
-	"go-gin/database"
-	"go-gin/models"
+	"io"
 	"log"
+	"myapp/initializers"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
+
+	_entity "myapp/app/entity"
+	_handler "myapp/app/handler"
+	_repo "myapp/app/repository"
 )
 
-func loadEnv() {
-	err := godotenv.Load(".env")
+func init() {
+	config, err := initializers.LoadConfig(".")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatalln("Failed to load environment variables! \n", err.Error())
 	}
-}
-
-func loadDatabase() {
-	database.InitDatabase()
-	database.Database.AutoMigrate(&models.User{})
+	initializers.ConnectDB(&config)
+	// initializers.ConnectRedis(&config)
 }
 
 func main() {
-	loadEnv()
-	loadDatabase()
-	serveApplication()
+	// Disable Console Color, you don't need console color when writing the logs to file.
+	gin.DisableConsoleColor()
+
+	// Logging to a file.
+	f, _ := os.Create("logs/gin.log")
+	gin.DefaultWriter = io.MultiWriter(f)
+
+	// Use the following code if you need to write the logs to file and console at the same time.
+	// gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
+
+	r := gin.Default()
+
+	r.Use(cors.Default())
+	r.Use(gin.Logger())
+
+	// Recovery middleware recovers from any panics and writes a 500 if there was one.
+	r.Use(gin.Recovery())
+
+	r.GET("/", healthCheckHandler)
+	r.GET("/ping", func(ctx *gin.Context) {
+		ctx.JSON(200, gin.H{
+			"message": "pong",
+		})
+	})
+	r.NoRoute(func(ctx *gin.Context) {
+		ctx.JSON(http.StatusNotFound, gin.H{"code": http.StatusNotFound, "message": "404 page not found"})
+	})
+
+	r.NoMethod(func(ctx *gin.Context) {
+		ctx.JSON(http.StatusMethodNotAllowed, gin.H{"code": http.StatusMethodNotAllowed, "message": "405 method not allowed"})
+	})
+
+	apiGroup := r.Group("/api")
+	v1Group := apiGroup.Group("/v1")
+
+	db := initializers.GetDBConnection()
+
+	repoUser := _repo.NewUserRepository(db)
+	entityUser := _entity.NewUserEntity(repoUser)
+
+	// ROUTES
+	_handler.NewAuthHandler(v1Group, entityUser)
+
+	r.Run(":8080")
+	fmt.Println("Server running on port 8080")
 }
 
-func healthCheckHandler(c *gin.Context) {
+func healthCheckHandler(ctx *gin.Context) {
 	// var superSecretKey string = goDotEnvVariable("SUPER_SECRET_KEY")
 
 	// if superSecretKey == "" {
@@ -41,30 +83,8 @@ func healthCheckHandler(c *gin.Context) {
 	// 	return
 	// }
 
-	c.JSON(http.StatusOK, gin.H{
+	ctx.JSON(http.StatusOK, gin.H{
 		"healthy": true,
 		"message": "Golang API with Gin Gonic...",
 	})
-}
-
-func serveApplication() {
-	r := gin.Default()
-	r.Use(cors.Default())
-
-	r.GET("/", healthCheckHandler)
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
-
-	apiGroup := r.Group("/api")
-	v1Group := apiGroup.Group("/v1")
-
-	publicRoutes := v1Group.Group("/auth")
-	publicRoutes.POST("/register", controllers.Register)
-	publicRoutes.POST("/login", controllers.Login)
-
-	r.Run(":8080")
-	fmt.Println("Server running on port 8080")
 }
