@@ -15,22 +15,44 @@ type UserRepository struct {
 	Conn *gorm.DB
 }
 
-// GetMe implements models.UserRepository.
-func (r *UserRepository) GetMe(ctx context.Context) (models.User, error) {
-	// err := helpers.ValidateToken()
-	// if err != nil {
-	// 	return models.User{}, err
-	// }
-	// token, _ := getToken(ctx)
-	// claims, _ := token.Claims.(jwt.MapClaims)
-	// userId := uint(claims["sub"].(float64))
+// RefreshToken implements models.UserRepository.
+func (r *UserRepository) RefreshToken(ctx context.Context, payload models.RefreshTokenInput) (models.Token, error) {
+	var token models.Token
 
-	// user, err := r.FindUserById(userId)
-	// if err != nil {
-	// 	return models.User{}, err
-	// }
-	// return user, nil
-	panic("unimplemented")
+	refresh_token := payload.RefreshToken
+
+	config, _ := initializers.LoadConfig(".")
+
+	// validate refrefresh_token
+	tokenClaims, err := helpers.ValidateToken(refresh_token, config.RefreshTokenPublicKey)
+	if err != nil {
+		return token, err
+	}
+
+	var user models.User
+	err = initializers.DB.Preload("UserProfile.Status").First(&user, "id = ?", tokenClaims.UserID).Error
+
+	if err == gorm.ErrRecordNotFound {
+		return token, fmt.Errorf("the user belonging to this token no logger exists")
+	}
+
+	// generate new tokens
+	accessTokenDetails, err := helpers.CreateToken(fmt.Sprint(user.ID), config.AccessTokenExpiresIn, config.AccessTokenPrivateKey)
+	if err != nil {
+		return token, err
+	}
+
+	refreshTokenDetails, err := helpers.CreateToken(fmt.Sprint(user.ID), config.RefreshTokenExpiresIn, config.RefreshTokenPrivateKey)
+	if err != nil {
+		return token, err
+	}
+
+	token.AccessToken = *accessTokenDetails.Token
+	token.RefreshToken = *refreshTokenDetails.Token
+	token.ExpiresIn = *accessTokenDetails.ExpiresIn
+	token.TokenType = accessTokenDetails.TokenType
+
+	return token, nil
 }
 
 // Create implements models.UserRepository.
@@ -59,7 +81,7 @@ func (r *UserRepository) FindUserByUsername(ctx context.Context, username string
 }
 
 // Login implements models.UserRepository.
-func (r *UserRepository) Login(ctx context.Context, payload models.AuthenticationInput) (models.Token, error) {
+func (r *UserRepository) Login(ctx context.Context, payload models.LoginInput) (models.Token, error) {
 	var token models.Token
 
 	user, err := r.FindUserByUsername(ctx, payload.Username)

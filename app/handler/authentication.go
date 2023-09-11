@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	middleware "myapp/middlewares"
 	"myapp/models"
 	"net/http"
@@ -20,6 +21,7 @@ func NewAuthHandler(r *gin.RouterGroup, us models.UserEntity) {
 	auth := r.Group("/auth")
 	auth.POST("/register", handler.Register)
 	auth.POST("/login", handler.Login)
+	auth.POST("/refresh", handler.RefreshAccessToken)
 
 	r.GET("/me", middleware.JWTAuthMiddleware(), handler.GetMe)
 }
@@ -51,7 +53,7 @@ func (h *AuthHandler) Register(ctx *gin.Context) {
 }
 
 func (h *AuthHandler) Login(ctx *gin.Context) {
-	var payload models.AuthenticationInput
+	var payload models.LoginInput
 
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
@@ -69,6 +71,12 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 		return
 	}
 
+	// config, _ := initializers.LoadConfig(".")
+	// // set cookie
+	// ctx.SetCookie("access_token", token.AccessToken, config.AccessTokenMaxAge*60, "/", "localhost", false, true)
+	// ctx.SetCookie("refresh_token", token.RefreshToken, config.RefreshTokenMaxAge*60, "/", "localhost", false, true)
+	// ctx.SetCookie("logged_in", "true", config.AccessTokenMaxAge*60, "/", "localhost", false, false)
+
 	ctx.JSON(http.StatusOK, &token)
 }
 
@@ -84,3 +92,63 @@ func (h *AuthHandler) GetMe(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, user)
 }
+func (h *AuthHandler) RefreshAccessToken(ctx *gin.Context) {
+	fmt.Println("do RefreshAccessToken ======================")
+	var payload models.RefreshTokenInput
+
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+	// fmt.Printf("RefreshTokenInput : %v\n", payload.RefreshToken)
+
+	token, err := h.entity.RefreshToken(ctx.Request.Context(), payload)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, &token)
+}
+
+// func LogoutUser(c *fiber.Ctx) error {
+// 	message := "Token is invalid or session has expired"
+
+// 	refresh_token := c.Cookies("refresh_token")
+
+// 	if refresh_token == "" {
+// 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"status": "fail", "message": message})
+// 	}
+
+// 	config, _ := initializers.LoadConfig(".")
+// 	ctx := context.TODO()
+
+// 	tokenClaims, err := utils.ValidateToken(refresh_token, config.RefreshTokenPublicKey)
+// 	if err != nil {
+// 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"status": "fail", "message": err.Error()})
+// 	}
+
+// 	access_token_uuid := c.Locals("access_token_uuid").(string)
+// 	_, err = initializers.RedisClient.Del(ctx, tokenClaims.TokenUuid, access_token_uuid).Result()
+// 	if err != nil {
+// 		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "fail", "message": err.Error()})
+// 	}
+
+// 	expired := time.Now().Add(-time.Hour * 24)
+// 	c.Cookie(&fiber.Cookie{
+// 		Name:    "access_token",
+// 		Value:   "",
+// 		Expires: expired,
+// 	})
+// 	c.Cookie(&fiber.Cookie{
+// 		Name:    "refresh_token",
+// 		Value:   "",
+// 		Expires: expired,
+// 	})
+// 	c.Cookie(&fiber.Cookie{
+// 		Name:    "logged_in",
+// 		Value:   "",
+// 		Expires: expired,
+// 	})
+// 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success"})
+// }

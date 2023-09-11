@@ -10,17 +10,10 @@ type RegisterInput struct {
 	Phone           string `json:"phone" binding:"required"`
 }
 
-type AuthenticationInput struct {
+type LoginInput struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
-
-// type AuthEntity interface {
-// 	Register(ctx context.Context, payload RegisterInput) (User, error)
-// 	Login(ctx context.Context, payload AuthenticationInput) (Token, error)
-// }
-
-// type AuthRepository interface {
-// 	Register(ctx context.Context, payload RegisterInput) (User, error)
-// 	Login(ctx context.Context, payload AuthenticationInput) (Token, error)
-// }
+type RefreshTokenInput struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}

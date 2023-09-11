@@ -9,9 +9,9 @@ type UserEntity struct {
 	Repo models.UserRepository
 }
 
-// GetMe implements models.UserEntity.
-func (e *UserEntity) GetMe(ctx context.Context) (models.User, error) {
-	data, err := e.Repo.GetMe(ctx)
+// RefreshToken implements models.UserEntity.
+func (e *UserEntity) RefreshToken(ctx context.Context, payload models.RefreshTokenInput) (models.Token, error) {
+	data, err := e.Repo.RefreshToken(ctx, payload)
 	if err != nil {
 		return data, err
 	}
@@ -34,7 +34,7 @@ func (e *UserEntity) FindUserByUsername(ctx context.Context, username string) (m
 }
 
 // Login implements models.UserEntity.
-func (e *UserEntity) Login(ctx context.Context, payload models.AuthenticationInput) (models.Token, error) {
+func (e *UserEntity) Login(ctx context.Context, payload models.LoginInput) (models.Token, error) {
 	data, err := e.Repo.Login(ctx, payload)
 	if err != nil {
 		return data, err
