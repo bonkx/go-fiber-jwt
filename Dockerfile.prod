@@ -1,0 +1,21 @@
+FROM golang:1.20.8-alpine3.18 as dev
+
+# enable Go modules support
+ENV GO111MODULE=on
+
+WORKDIR /app
+
+# manage dependencies
+COPY go.mod go.sum ./
+RUN go mod tidy
+RUN go mod download
+
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o /go/bin/app
+
+FROM alpine:latest as prod
+
+COPY --from=dev go/bin/app /
+
+CMD ["/app"]
+# ENTRYPOINT ["/app"]

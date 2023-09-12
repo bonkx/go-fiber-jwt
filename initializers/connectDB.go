@@ -16,8 +16,7 @@ var DB *gorm.DB
 func ConnectDB(config *Config) {
 	var err error
 	// Connection URL to connect to Postgres Database
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=UTC",
-		config.DBHost, config.DBUserName, config.DBUserPassword, config.DBName, config.DBPort)
+	dsn := config.DB_DSN
 
 	// Connect to the DB and initialize the DB variable
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
@@ -41,7 +40,6 @@ func ConnectDB(config *Config) {
 	DB.AutoMigrate(
 		&models.User{},
 		&models.UserProfile{},
-		// &models.Status{},
 		// &models.Product{},
 		// &models.Fact{},
 	)
@@ -49,8 +47,9 @@ func ConnectDB(config *Config) {
 	fmt.Println("👍 Migration complete")
 
 	// Initialize Status
-	// var status = []models.Status{{Name: "Active"}, {Name: "Inactive"}, {Name: "Pending"}, {Name: "Suspended"}}
-	// DB.Create(&status)
+	DB.AutoMigrate(&models.Status{})
+	var status = []models.Status{{Name: "Active"}, {Name: "Inactive"}, {Name: "Pending"}, {Name: "Suspended"}}
+	DB.Create(&status)
 
 	SetUpDBConnection(DB)
 }

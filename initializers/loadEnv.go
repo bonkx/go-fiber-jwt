@@ -7,15 +7,17 @@ import (
 )
 
 type Config struct {
-	DBHost         string `mapstructure:"DB_HOST"`
-	DBUserName     string `mapstructure:"DB_USER"`
-	DBUserPassword string `mapstructure:"DB_PASS"`
-	DBName         string `mapstructure:"DB_NAME"`
-	DBPort         string `mapstructure:"DB_PORT"`
-	ServerPort     string `mapstructure:"PORT"`
+	DB_DSN     string `mapstructure:"DB_DSN"`
+	ServerPort string `mapstructure:"PORT"`
 
 	ClientOrigin string `mapstructure:"CLIENT_ORIGIN"`
 	RedisUri     string `mapstructure:"REDIS_URL"`
+
+	EmailFrom string `mapstructure:"EMAIL_FROM"`
+	SMTPHost  string `mapstructure:"SMTP_HOST"`
+	SMTPUser  string `mapstructure:"SMTP_USER"`
+	SMTPPass  string `mapstructure:"SMTP_PASS"`
+	SMTPPort  string `mapstructure:"SMTP_PORT"`
 
 	AccessTokenPrivateKey  string        `mapstructure:"ACCESS_TOKEN_PRIVATE_KEY"`
 	AccessTokenPublicKey   string        `mapstructure:"ACCESS_TOKEN_PUBLIC_KEY"`
