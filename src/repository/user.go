@@ -3,9 +3,9 @@ package repository
 import (
 	"context"
 	"fmt"
-	"myapp/helpers"
-	"myapp/initializers"
-	"myapp/models"
+	initializers "myapp/pkg/configs"
+	"myapp/pkg/helpers"
+	"myapp/src/models"
 	"strings"
 
 	"gorm.io/gorm"
@@ -13,6 +13,16 @@ import (
 
 type UserRepository struct {
 	Conn *gorm.DB
+}
+
+// EmailExists implements models.UserRepository.
+func (*UserRepository) EmailExists(email string) error {
+	panic("unimplemented")
+}
+
+// UsernameExists implements models.UserRepository.
+func (*UserRepository) UsernameExists(username string) error {
+	panic("unimplemented")
 }
 
 // RefreshToken implements models.UserRepository.

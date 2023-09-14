@@ -1,6 +1,8 @@
-# go-gin jwt docker
+# go-fiber jwt docker
 
-Golang Rest API with [Gin Gonic](https://github.com/gin-gonic/gin) and [GORM](https://github.com/go-gorm/gorm) and Docker
+Golang Rest API with [Fiber](https://github.com/gofiber/fiber) and [GORM](https://github.com/go-gorm/gorm) and Docker
+
+With pattern Handler, Usecase, Repository
 
 ---
 
@@ -21,9 +23,8 @@ go get -u golang.org/x/crypto
 
 ### Todo List
 
-- [x] Gin Routes, Favicon
-- [x] Seeds DB
-- [x] Gin Logger
+- [x] Fiber Log file
+- [x] Fiber Monitor
 - [x] CRUD
   - [x] Pagination with custom Paginate [pagination-using-gorm-scopes](https://dev.to/rafaelgfirmino/pagination-using-gorm-scopes-3k5f)
   - [ ] Redis List Pagination
@@ -116,6 +117,7 @@ go to [https://www.libvips.org/](https://www.libvips.org/)
   - [ ] Delete (De Activated)
 
 ### Credit
+[tutorial-go-fiber-rest-api](https://github.com/koddr/tutorial-go-fiber-rest-api)
 [Twilio](https://www.twilio.com/blog/build-restful-api-using-golang-and-gin)  
 [Vinika Anthwal - Medium](https://medium.com/@22vinikaanthwal/register-login-api-with-jwt-authentication-in-golang-gin-740633e5707b)  
 [codevoweb.com](https://codevoweb.com/how-to-properly-use-jwt-for-authentication-in-golang/)

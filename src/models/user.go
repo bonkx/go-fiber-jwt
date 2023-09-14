@@ -51,11 +51,13 @@ func (user *User) ValidatePassword(password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 }
 
-type UserEntity interface {
+type UserUsecase interface {
 	Register(ctx context.Context, payload RegisterInput) (User, error)
 	Login(ctx context.Context, payload LoginInput) (Token, error)
 	RefreshToken(ctx context.Context, payload RefreshTokenInput) (Token, error)
 
+	EmailExists(email string) error
+	UsernameExists(username string) error
 	Create(ctx context.Context, md User) error
 	FindUserByUsername(ctx context.Context, username string) (User, error)
 	FindUserById(ctx context.Context, id uint) (User, error)
@@ -66,6 +68,8 @@ type UserRepository interface {
 	Login(ctx context.Context, payload LoginInput) (Token, error)
 	RefreshToken(ctx context.Context, payload RefreshTokenInput) (Token, error)
 
+	EmailExists(email string) error
+	UsernameExists(username string) error
 	Create(ctx context.Context, md User) error
 	FindUserByUsername(ctx context.Context, username string) (User, error)
 	FindUserById(ctx context.Context, id uint) (User, error)

@@ -1,8 +1,8 @@
-package initializers
+package configs
 
 import (
 	"fmt"
-	"myapp/models"
+	"myapp/src/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
