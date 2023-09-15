@@ -2,27 +2,39 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	initializers "myapp/pkg/configs"
+	"myapp/pkg/configs"
 	"myapp/pkg/helpers"
 	"myapp/src/models"
 	"strings"
 
+	"github.com/thanhpk/randstr"
 	"gorm.io/gorm"
 )
 
 type UserRepository struct {
-	Conn *gorm.DB
+	DB *gorm.DB
 }
 
 // EmailExists implements models.UserRepository.
-func (*UserRepository) EmailExists(email string) error {
-	panic("unimplemented")
+func (r *UserRepository) EmailExists(email string) error {
+	var user models.User
+	err := r.DB.Where("email = ?", strings.ToLower(email)).Find(&user).Error
+	if err != nil {
+		return errors.New("Email already registered, please use another one!")
+	}
+	return nil
 }
 
 // UsernameExists implements models.UserRepository.
-func (*UserRepository) UsernameExists(username string) error {
-	panic("unimplemented")
+func (r *UserRepository) UsernameExists(username string) error {
+	var user models.User
+	err := r.DB.Where("username = ?", strings.ToLower(username)).Find(&user).Error
+	if err != nil {
+		return errors.New("Username already registered, please use another one!")
+	}
+	return nil
 }
 
 // RefreshToken implements models.UserRepository.
@@ -31,7 +43,7 @@ func (r *UserRepository) RefreshToken(ctx context.Context, payload models.Refres
 
 	refresh_token := payload.RefreshToken
 
-	config, _ := initializers.LoadConfig(".")
+	config, _ := configs.LoadConfig(".")
 
 	// validate refrefresh_token
 	tokenClaims, err := helpers.ValidateToken(refresh_token, config.RefreshTokenPublicKey)
@@ -40,7 +52,7 @@ func (r *UserRepository) RefreshToken(ctx context.Context, payload models.Refres
 	}
 
 	var user models.User
-	err = initializers.DB.Preload("UserProfile.Status").First(&user, "id = ?", tokenClaims.UserID).Error
+	err = r.DB.Preload("UserProfile.Status").First(&user, "id = ?", tokenClaims.UserID).Error
 
 	if err == gorm.ErrRecordNotFound {
 		return token, fmt.Errorf("the user belonging to this token no logger exists")
@@ -73,7 +85,7 @@ func (r *UserRepository) Create(ctx context.Context, md models.User) error {
 // FindUserById implements models.UserRepository.
 func (r *UserRepository) FindUserById(ctx context.Context, id uint) (models.User, error) {
 	var user models.User
-	err := r.Conn.Preload("UserProfile.Status").Where("ID=?", id).Find(&user).Error
+	err := r.DB.Preload("UserProfile.Status").Where("ID=?", id).Find(&user).Error
 	if err != nil {
 		return models.User{}, err
 	}
@@ -83,7 +95,7 @@ func (r *UserRepository) FindUserById(ctx context.Context, id uint) (models.User
 // FindUserByUsername implements models.UserRepository.
 func (r *UserRepository) FindUserByUsername(ctx context.Context, username string) (models.User, error) {
 	var user models.User
-	err := r.Conn.Where("username=?", strings.ToLower(username)).Or("email=?", strings.ToLower(username)).Find(&user).Error
+	err := r.DB.Where("username=?", strings.ToLower(username)).Or("email=?", strings.ToLower(username)).Find(&user).Error
 	if err != nil {
 		return user, err
 	}
@@ -105,12 +117,7 @@ func (r *UserRepository) Login(ctx context.Context, payload models.LoginInput) (
 		return token, fmt.Errorf("invalid email/username or password")
 	}
 
-	// token, err = helpers.GenerateJWT(user)
-	// if err != nil {
-	// 	return token, err
-	// }
-
-	config, _ := initializers.LoadConfig(".")
+	config, _ := configs.LoadConfig(".")
 
 	accessTokenDetails, err := helpers.CreateToken(fmt.Sprint(user.ID), config.AccessTokenExpiresIn, config.AccessTokenPrivateKey)
 	if err != nil {
@@ -131,21 +138,9 @@ func (r *UserRepository) Login(ctx context.Context, payload models.LoginInput) (
 }
 
 // Register implements models.UserRepository.
-func (r *UserRepository) Register(ctx context.Context, payload models.RegisterInput) (models.User, error) {
+func (r *UserRepository) Register(ctx context.Context, user models.User) (models.User, error) {
 
-	user := models.User{
-		Username:  payload.Username,
-		Password:  payload.Password,
-		Email:     payload.Email,
-		FirstName: payload.FirstName,
-		LastName:  payload.LastName,
-		UserProfile: models.UserProfile{
-			Phone:    payload.Phone,
-			StatusID: 3, // pending
-		},
-	}
-
-	err := r.Conn.Create(&user).Error
+	err := r.DB.Create(&user).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key value violates unique") {
 			// fmt.Println(err)
@@ -155,15 +150,37 @@ func (r *UserRepository) Register(ctx context.Context, payload models.RegisterIn
 		return user, err
 	}
 
-	// Send Email if register successfully
-	// emailData := utils.EmailData{
-	// 	URL:       config.Origin + "/api/v1/verify-email/" + code,
-	// 	FirstName: firstName,
-	// 	Subject:   "Your account verification",
-	// }
+	// Generate Verification Code
+	code := randstr.String(50)
 
-	// // TODO: send email with celery task
-	// utils.SendEmail(user, &emailData, "verificationCode.html")
+	verification_code := helpers.Encode(code)
+
+	// Update User in Database
+	user.VerificationCode = verification_code
+	r.DB.Save(&user)
+
+	var accountName = user.FirstName
+
+	if accountName != "" {
+		if strings.Contains(accountName, " ") {
+			accountName = strings.Split(accountName, " ")[1]
+		}
+	} else {
+		accountName = user.Email
+	}
+
+	siteData, _ := configs.GetSiteData(".")
+	// Send Email if register successfully
+	emailData := helpers.EmailData{
+		URL:          siteData.ClientOrigin + "/api/v1/verify-email/" + code,
+		FirstName:    accountName,
+		Subject:      "Your account verification",
+		TypeOfAction: "Register",
+		SiteData:     siteData,
+	}
+
+	// send email with goroutine
+	go helpers.SendEmail(user, &emailData, "verificationCode.html")
 
 	return user, nil
 }

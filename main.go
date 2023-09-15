@@ -4,7 +4,7 @@ import (
 	"log"
 	"myapp/pkg/configs"
 	"myapp/pkg/middleware"
-	"myapp/src/routes"
+	"myapp/routes"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -32,10 +32,12 @@ func main() {
 	db := configs.GetDBConnection()
 
 	// Routes.
-	routes.SwaggerRoute(app)      // Register a route for API Docs (Swagger).
-	routes.PublicRoutes(app, db)  // Register a public routes for app.
-	routes.PrivateRoutes(app, db) // Register a private routes for app.
-	routes.NotFoundRoute(app)     // Register route for 404 Error.
+	routes.PublicRoutes(app, db) // Register a public routes for app.
+	routes.APIRoutes(app, db)    // Register a API routes for app.
+
+	routes.SwaggerRoute(app) // Register a route for API Docs (Swagger).
+	// place at end of routes
+	routes.NotFoundRoute(app) // Register route for 404 Error.
 
 	// Start server (with graceful shutdown).
 	configs.StartServer(app)

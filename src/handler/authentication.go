@@ -10,14 +10,15 @@ import (
 )
 
 type AuthHandler struct {
-	useCase models.UserUsecase
+	userUsecase models.UserUsecase
 }
 
-func NewAuthHandler(r fiber.Router, uc models.UserUsecase) {
+func NewAuthHandler(r fiber.Router, userUsecase models.UserUsecase) {
 	handler := &AuthHandler{
-		useCase: uc,
+		userUsecase: userUsecase,
 	}
 
+	// ROUTES
 	auth := r.Group("/auth")
 	auth.Post("/register", handler.Register)
 	auth.Post("/login", handler.Login)
@@ -41,15 +42,16 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		})
 	}
 
-	// form POST validations
-	// errors := models.ValidateStruct(payload)
-	// if errors != nil {
-	// 	errD := models.ErrorDetailsResponse{
-	// 		Message: fiber.ErrUnprocessableEntity.Message,
-	// 		Errors:  errors,
-	// 	}
-	// 	return c.Status(fiber.StatusUnprocessableEntity).JSON(errD)
-	// }
+	// form POST validation
+	errors := models.ValidateStruct(&payload)
+	if errors != nil {
+		errD := models.ErrorDetailsResponse{
+			Code:    fiber.ErrUnprocessableEntity.Code,
+			Message: fiber.ErrUnprocessableEntity.Message,
+			Errors:  errors,
+		}
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(errD)
+	}
 
 	if payload.Phone != "" {
 		phone_number_validated := helpers.FormatPhoneNumber(payload.Phone)
@@ -66,12 +68,11 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		payload.Phone = phone_number_validated
 	}
 
-	savedUser, err := h.useCase.Register(c.Context(), payload)
+	savedUser, err := h.userUsecase.Register(c.Context(), payload)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": err.Error(),
 		})
-		// return c.Status(errD.Code).JSON(errD)
 	}
 
 	message := "We sent an email with a verification link to " + savedUser.Email
@@ -91,14 +92,20 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		})
 	}
 
-	// errors := models.ValidateStruct(payload)
-	// if errors != nil {
-	// 	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "errors": errors})
-	// }
+	// form POST validation
+	errors := models.ValidateStruct(&payload)
+	if errors != nil {
+		errD := models.ErrorDetailsResponse{
+			Code:    fiber.ErrUnprocessableEntity.Code,
+			Message: fiber.ErrUnprocessableEntity.Message,
+			Errors:  errors,
+		}
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(errD)
+	}
 
-	token, err := h.useCase.Login(c.Context(), payload)
+	token, err := h.userUsecase.Login(c.Context(), payload)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": err.Error(),
 		})
 	}
@@ -134,7 +141,7 @@ func (h *AuthHandler) RefreshAccessToken(c *fiber.Ctx) error {
 		})
 	}
 
-	token, err := h.useCase.RefreshToken(c.Context(), payload)
+	token, err := h.userUsecase.RefreshToken(c.Context(), payload)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": err.Error(),

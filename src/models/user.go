@@ -14,16 +14,17 @@ import (
 // User struct is used to store user information in the database
 type User struct {
 	gorm.Model
-	FirstName   string     `json:"first_name" binding:"required"`
-	LastName    string     `json:"last_name" binding:"required"`
-	Username    string     `json:"username" gorm:"not null;unique"`
-	Email       string     `json:"email" binding:"required" gorm:"unique"`
-	Password    string     `json:"-" binding:"required"`
-	Verified    *bool      `gorm:"not null;default:false"`
-	IsSuperuser *bool      `json:"is_superuser" gorm:"default:false"`
-	IsStaff     *bool      `json:"is_staff" gorm:"default:false"`
-	LastLogin   *time.Time `json:"last_login"`
-	VerifiedAt  *time.Time `json:"verified_at"`
+	FirstName        string     `json:"first_name" binding:"required"`
+	LastName         string     `json:"last_name" binding:"required"`
+	Username         string     `json:"username" gorm:"not null;unique"`
+	Email            string     `json:"email" binding:"required" gorm:"unique"`
+	Password         string     `json:"-" binding:"required"`
+	Verified         *bool      `gorm:"not null;default:false"`
+	IsSuperuser      *bool      `json:"is_superuser" gorm:"default:false"`
+	IsStaff          *bool      `json:"is_staff" gorm:"default:false"`
+	LastLogin        *time.Time `json:"last_login"`
+	VerificationCode string     `json:"verification_code"`
+	VerifiedAt       *time.Time `json:"verified_at"`
 
 	UserProfile UserProfile `gorm:"foreignkey:UserID"`
 }
@@ -56,21 +57,23 @@ type UserUsecase interface {
 	Login(ctx context.Context, payload LoginInput) (Token, error)
 	RefreshToken(ctx context.Context, payload RefreshTokenInput) (Token, error)
 
-	EmailExists(email string) error
-	UsernameExists(username string) error
-	Create(ctx context.Context, md User) error
-	FindUserByUsername(ctx context.Context, username string) (User, error)
-	FindUserById(ctx context.Context, id uint) (User, error)
+	// Create(ctx context.Context, md User) error
+	// Update(ctx context.Context, md User) error
+	// Delete(ctx context.Context, md User) error
+	// FindUserByUsername(ctx context.Context, username string) (User, error)
+	// FindUserById(ctx context.Context, id uint) (User, error)
 }
 
 type UserRepository interface {
-	Register(ctx context.Context, payload RegisterInput) (User, error)
+	Register(ctx context.Context, md User) (User, error)
 	Login(ctx context.Context, payload LoginInput) (Token, error)
 	RefreshToken(ctx context.Context, payload RefreshTokenInput) (Token, error)
 
 	EmailExists(email string) error
 	UsernameExists(username string) error
 	Create(ctx context.Context, md User) error
+	// Update(ctx context.Context, md User) error
+	// Delete(ctx context.Context, md User) error
 	FindUserByUsername(ctx context.Context, username string) (User, error)
 	FindUserById(ctx context.Context, id uint) (User, error)
 }

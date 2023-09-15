@@ -9,8 +9,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// PrivateRoutes func for describe group of private routes.
-func PrivateRoutes(a *fiber.App, db *gorm.DB) {
+// APIRoutes func for describe group of private routes.
+func APIRoutes(a *fiber.App, db *gorm.DB) {
 	// Create routes group.
 	v1 := a.Group("/api/v1")
 

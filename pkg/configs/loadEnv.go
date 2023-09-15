@@ -7,6 +7,8 @@ import (
 )
 
 type Config struct {
+	IsDebug    bool   `mapstructure:"IS_DEBUG"`
+	AppName    string `mapstructure:"APP_NAME"`
 	DB_DSN     string `mapstructure:"DB_DSN"`
 	ServerPort string `mapstructure:"PORT"`
 
@@ -17,7 +19,7 @@ type Config struct {
 	SMTPHost  string `mapstructure:"SMTP_HOST"`
 	SMTPUser  string `mapstructure:"SMTP_USER"`
 	SMTPPass  string `mapstructure:"SMTP_PASS"`
-	SMTPPort  string `mapstructure:"SMTP_PORT"`
+	SMTPPort  int    `mapstructure:"SMTP_PORT"`
 
 	AccessTokenPrivateKey  string        `mapstructure:"ACCESS_TOKEN_PRIVATE_KEY"`
 	AccessTokenPublicKey   string        `mapstructure:"ACCESS_TOKEN_PUBLIC_KEY"`
@@ -30,6 +32,36 @@ type Config struct {
 }
 
 func LoadConfig(path string) (config Config, err error) {
+	viper.AddConfigPath(path)
+	viper.SetConfigType("env")
+	viper.SetConfigName(".env")
+
+	viper.AutomaticEnv()
+
+	err = viper.ReadInConfig()
+	if err != nil {
+		return
+	}
+
+	err = viper.Unmarshal(&config)
+	return
+}
+
+type SiteData struct {
+	IsDebug    bool   `mapstructure:"IS_DEBUG"`
+	AppEnv     string `mapstructure:"APP_ENV"`
+	AppName    string `mapstructure:"APP_NAME"`
+	AppKeyword string `mapstructure:"APP_KEYWORD"`
+	AppAddress string `mapstructure:"APP_ADDRESS"`
+
+	ServerPort string `mapstructure:"PORT"`
+
+	ClientOrigin string `mapstructure:"CLIENT_ORIGIN"`
+
+	EmailFrom string `mapstructure:"EMAIL_FROM"`
+}
+
+func GetSiteData(path string) (config SiteData, err error) {
 	viper.AddConfigPath(path)
 	viper.SetConfigType("env")
 	viper.SetConfigName(".env")

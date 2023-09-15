@@ -2,10 +2,7 @@ package helpers
 
 import (
 	"encoding/base64"
-	"fmt"
 	"strings"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 func Encode(s string) string {
@@ -20,15 +17,6 @@ func Decode(s string) (string, error) {
 	}
 
 	return string(data), nil
-}
-
-func HashPassword(password string) (string, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-
-	if err != nil {
-		return "", fmt.Errorf("could not hash password %w", err)
-	}
-	return string(hashedPassword), nil
 }
 
 func FormatPhoneNumber(phone_number string) string {

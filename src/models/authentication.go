@@ -1,19 +1,19 @@
 package models
 
 type RegisterInput struct {
-	Username        string `json:"username" binding:"required"`
-	Password        string `json:"password" binding:"required"`
+	Username        string `json:"username" validate:"required"`
+	Password        string `json:"password" validate:"required"`
 	PasswordConfirm string `json:"password_confirm"`
-	FirstName       string `json:"first_name" binding:"required"`
-	LastName        string `json:"last_name" binding:"required"`
-	Email           string `json:"email" binding:"required"`
-	Phone           string `json:"phone" binding:"required"`
+	FirstName       string `json:"first_name" validate:"required"`
+	LastName        string `json:"last_name" validate:"required"`
+	Email           string `json:"email" validate:"required"`
+	Phone           string `json:"phone" validate:"required"`
 }
 
 type LoginInput struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 type RefreshTokenInput struct {
-	RefreshToken string `json:"refresh_token" binding:"required"`
+	RefreshToken string `json:"refresh_token" validate:"required"`
 }

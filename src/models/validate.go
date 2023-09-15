@@ -43,11 +43,12 @@ func ValidateStruct(data interface{}) []*ErrorResponse {
 			var element ErrorResponse
 			translatedErr := fmt.Errorf(err.Translate(trans))
 			element.FailedField = err.StructNamespace()
-			// element.FailedField = strings.ToLower(err.StructField())
+			// element.FailedField = err.Field()
 			// log.Println(err.StructNamespace())
 			element.Tag = err.Tag()
 			// element.Value = err.Param()
 			element.Value = translatedErr.Error()
+
 			if err.Tag() == "e164" {
 				element.Value = fmt.Sprintf("%s %s", translatedErr.Error(), "i.e. +6281234567890 or +628 123 4567 890")
 			}

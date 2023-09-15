@@ -6,53 +6,39 @@ With pattern Handler, Usecase, Repository
 
 ---
 
-### List of packages that we will need to install for this project
-
-```bash
-// gin framework
-go get -u github.com/gin-gonic/gin
-// ORM library
-go get -u github.com/jinzhu/gorm
-// package that we will be used to authenticate and generate our JWT
-go get -u github.com/dgrijalva/jwt-go
-// to help manage our environment variables
-go get -u github.com/joho/godotenv
-// to encrypt our users password
-go get -u golang.org/x/crypto
-```
-
 ### Todo List
 
-- [x] Fiber Log file
-- [x] Fiber Monitor
-- [x] CRUD
-  - [x] Pagination with custom Paginate [pagination-using-gorm-scopes](https://dev.to/rafaelgfirmino/pagination-using-gorm-scopes-3k5f)
-  - [ ] Redis List Pagination
-  - [x] Sort + Search function in List Data
-  - [x] Create Data
-  - [x] Payload Sanitize
-  - [x] Edit Data
-  - [x] Delete Data
-- [x] Preload Model (Associations in Go/Serializer in Django)
-- [x] Auth (Register, Login)
+- [x] Fiber Log file, Favicon
+- [x] Fiber Monitor (metrics)
+- [ ] Auth (Register, Login)
   - [x] Register, Send verification Email
-  - [x] Send Email with Goroutines (background task)
-  - [x] Login
-  - [x] Refresh Token
+  - [x] Send Email with Goroutines
+  - [ ] Verification Email Code
+  - [ ] Login
+  - [ ] JWT Auth
+  - [ ] Refresh Token
   - [ ] Logout
-- [x] JWT Auth
-- [x] Protected API (Auth Token)
-- [x] Routes
-  - [x] Delivery (handler/controller)
-  - [x] Usecase (bridge - logic process)
-  - [x] Repository (process to DB)
+- [ ] CRUD
+  - [ ] Pagination with custom Paginate [pagination-using-gorm-scopes](https://dev.to/rafaelgfirmino/pagination-using-gorm-scopes-3k5f)
+  - [ ] Redis List Pagination
+  - [ ] Sort + Search function in List Data
+  - [ ] Create Data
+  - [ ] Payload Sanitize
+  - [ ] Edit Data
+  - [ ] Delete Data
+- [ ] Preload Model (Associations in Go/Serializer in Django)
+- [ ] Protected API (Auth Token)
+- [ ] Routes
+  - [ ] Delivery (handler/controller)
+  - [ ] Usecase (bridge - logic process)
+  - [ ] Repository (process to DB)
 - [ ] Open API with API KEY middleware
-- [x] Upload Files
+- [ ] Upload Files
 - [ ] Upload Videos
 - [ ] Create thumbnail from videos
-- [x] Upload Images and Compress Image with libvips
-- [x] Create thumbnail from image
-- [x] Image Processing with [libvips](https://www.libvips.org/)
+- [ ] Upload Images and Compress Image with libvips
+- [ ] Create thumbnail from image
+- [ ] Image Processing with [libvips](https://www.libvips.org/)
 
 ---
 
@@ -65,37 +51,37 @@ go to [https://www.libvips.org/](https://www.libvips.org/)
 ### Data
 
 - [ ] User (Admin)
-  - [x] List
-  - [x] Get
+  - [ ] List
+  - [ ] Get
   - [ ] Create
   - [ ] Update (Upload Photo)
-  - [x] Delete
-  - [x] List User Deleted
+  - [ ] Delete
+  - [ ] List User Deleted
   - [ ] Hard Delete (constraint:OnDelete:CASCADE)
-  - [x] Activated User
-  - [x] De Activated User
-  - [x] List User Activity
-  - [x] Get List User Activity by ID
-  - [x] Get List User Wishlist by ID
+  - [ ] Activated User
+  - [ ] De Activated User
+  - [ ] List User Activity
+  - [ ] Get List User Activity by ID
+  - [ ] Get List User Wishlist by ID
 - [ ] API Key (Admin)
-  - [x] Original API Key
-  - [x] List with encode
-  - [x] Get with encode
-  - [x] Create
-  - [x] Revoke
-  - [x] Middleware API Key
+  - [ ] Original API Key
+  - [ ] List with encode
+  - [ ] Get with encode
+  - [ ] Create
+  - [ ] Revoke
+  - [ ] Middleware API Key
 - [ ] User
-  - [x] Verify Email
-  - [x] Profile
-  - [x] Update Profile
+  - [ ] Verify Email
+  - [ ] Profile
+  - [ ] Update Profile
   - [ ] Upload Photo Profile
   - [ ] Request Forgot Password and send link change password to email
   - [ ] Change Password
-  - [x] Deletion Account
-  - [x] List Wishlist
-  - [x] Post Wishlist
-  - [x] Post UnWishlist
-  - [x] Save User Activity (last login at, ip address)
+  - [ ] Deletion Account
+  - [ ] List Wishlist
+  - [ ] Post Wishlist
+  - [ ] Post UnWishlist
+  - [ ] Save User Activity (last login at, ip address)
 - [ ] Fact
   - [ ] List
   - [ ] Get
@@ -103,8 +89,8 @@ go to [https://www.libvips.org/](https://www.libvips.org/)
   - [ ] Update
   - [ ] Delete
 - [ ] Products
-  - [x] Populate
-  - [x] List
+  - [ ] Populate
+  - [ ] List
   - [ ] Get
   - [ ] Create
   - [ ] Update

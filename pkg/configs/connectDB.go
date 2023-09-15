@@ -47,9 +47,9 @@ func ConnectDB(config *Config) {
 	fmt.Println("👍 Migration complete")
 
 	// Initialize Status
-	DB.AutoMigrate(&models.Status{})
-	var status = []models.Status{{Name: "Active"}, {Name: "Inactive"}, {Name: "Pending"}, {Name: "Suspended"}}
-	DB.Create(&status)
+	// DB.AutoMigrate(&models.Status{})
+	// var status = []models.Status{{Name: "Active"}, {Name: "Inactive"}, {Name: "Pending"}, {Name: "Suspended"}}
+	// DB.Create(&status)
 
 	SetUpDBConnection(DB)
 }

@@ -6,8 +6,6 @@ services:
       context: .
       target: dev
     command: air
-    environment:
-      - GIN_MODE=${GIN_MODE}
     volumes:
       - .:/app
     env_file:
