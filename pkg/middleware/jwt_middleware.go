@@ -13,19 +13,28 @@ import (
 
 func JWTAuthMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		access_token := helpers.ExtractToken(c)
+		// access_token := helpers.ExtractToken(c)
 
-		if access_token == "" {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"code":    fiber.ErrUnauthorized.Code,
-				"error":   fiber.ErrUnauthorized.Message,
-				"message": "Unauthorized! No credentials provided.",
-			})
-		}
+		// if access_token == "" {
+		// 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+		// 		"code":    fiber.ErrUnauthorized.Code,
+		// 		"error":   fiber.ErrUnauthorized.Message,
+		// 		"message": "Unauthorized! No credentials provided.",
+		// 	})
+		// }
 
-		config, _ := configs.LoadConfig(".")
+		// config, _ := configs.LoadConfig(".")
 
-		tokenClaims, err := helpers.ValidateToken(access_token, config.AccessTokenPublicKey)
+		// tokenClaims, err := helpers.ValidateToken(access_token, config.AccessTokenPublicKey)
+		// if err != nil {
+		// 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+		// 		"code":    fiber.ErrUnauthorized.Code,
+		// 		"error":   fiber.ErrUnauthorized.Message,
+		// 		"message": err.Error(),
+		// 	})
+		// }
+
+		tokenClaims, err := helpers.ExtractTokenMetadata(c)
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"code":    fiber.ErrUnauthorized.Code,
@@ -56,7 +65,7 @@ func JWTAuthMiddleware() fiber.Handler {
 		}
 
 		c.Locals("user", user)
-		c.Locals("access_token_uuid", tokenClaims.TokenUuid)
+		c.Locals("token_uuid", tokenClaims.TokenUuid)
 
 		return c.Next()
 	}

@@ -60,7 +60,7 @@ type UserUsecase interface {
 	RefreshToken(ctx context.Context, payload RefreshTokenInput) (Token, error)
 	VerificationEmail(ctx context.Context, code string) error
 	ResendVerificationCode(ctx context.Context, email string) error
-	Logout(access_token string) error
+	Logout(authD *AccessDetails) error
 
 	// Create(ctx context.Context, md User) error
 	// Update(ctx context.Context, md User) error
@@ -72,7 +72,8 @@ type UserRepository interface {
 	Login(ctx context.Context, md User) (Token, error)
 	RefreshToken(ctx context.Context, payload RefreshTokenInput) (Token, error)
 	GeneratePairToken(userID uint) (Token, error)
-	DeleteToken(access_token string) error
+	DeleteToken(authD *AccessDetails) error
+	DeleteAuthRedis(givenUuid string) (int64, error)
 	VerificationEmail(ctx context.Context, code string) error
 	SendVerificationEmail(md User, code string) error
 	ResendVerificationCode(md User) error

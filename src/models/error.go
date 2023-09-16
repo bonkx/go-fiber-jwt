@@ -11,3 +11,8 @@ type ErrorResponse struct {
 	Tag     string
 	Message string
 }
+
+type ValueError struct {
+	Code int
+	Err  error
+}

@@ -2,7 +2,11 @@ package helpers
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
+	"myapp/pkg/configs"
+	"myapp/src/models"
+	"strconv"
 	"strings"
 	"time"
 
@@ -11,45 +15,55 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-type TokenDetails struct {
-	Token     *string
-	TokenUuid string
-	UserID    string
-	ExpiresIn *int64
-	TokenType string
-}
+func CreateToken(userid uint) (*models.TokenDetails, error) {
+	config, _ := configs.LoadConfig(".")
 
-func CreateToken(userid uint, ttl time.Duration, privateKey string) (*TokenDetails, error) {
 	now := time.Now().UTC()
-	td := &TokenDetails{
-		ExpiresIn: new(int64),
-		Token:     new(string),
+	td := &models.TokenDetails{
 		TokenType: "Bearer",
 	}
-	// fmt.Println("ttl ============ :", ttl)
-	// *td.ExpiresIn = int64(ttl.Seconds())
-	*td.ExpiresIn = now.Add(ttl).Unix()
-	td.TokenUuid = uuid.NewV4().String()
-	td.UserID = fmt.Sprint(userid)
+	td.AtExpires = now.Add(config.AccessTokenExpiresIn).Unix()
+	td.AccessUuid = uuid.NewV4().String()
+	td.RtExpires = now.Add(config.RefreshTokenExpiresIn).Unix()
+	td.RefreshUuid = td.AccessUuid + "++" + strconv.Itoa(int(userid))
 
-	decodedPrivateKey, err := base64.StdEncoding.DecodeString(privateKey)
+	// Creating Access Token
+	atDecodedPrivateKey, err := base64.StdEncoding.DecodeString(config.AccessTokenPrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("could not decode token private key: %w", err)
 	}
-	key, err := jwt.ParseRSAPrivateKeyFromPEM(decodedPrivateKey)
+	atKey, err := jwt.ParseRSAPrivateKeyFromPEM(atDecodedPrivateKey)
 
 	if err != nil {
 		return nil, fmt.Errorf("create: parse token private key: %w", err)
 	}
 
 	atClaims := make(jwt.MapClaims)
+	atClaims["authorized"] = true
 	atClaims["sub"] = userid
-	atClaims["token_uuid"] = td.TokenUuid
-	atClaims["exp"] = td.ExpiresIn
-	atClaims["iat"] = now.Unix()
-	atClaims["nbf"] = now.Unix()
+	atClaims["token_uuid"] = td.AccessUuid
+	atClaims["exp"] = td.AtExpires
+	td.AccessToken, err = jwt.NewWithClaims(jwt.SigningMethodRS256, atClaims).SignedString(atKey)
+	if err != nil {
+		return nil, fmt.Errorf("create: sign access token: %w", err)
+	}
 
-	*td.Token, err = jwt.NewWithClaims(jwt.SigningMethodRS256, atClaims).SignedString(key)
+	// Creating Refresh Token
+	rtDecodedPrivateKey, err := base64.StdEncoding.DecodeString(config.RefreshTokenPrivateKey)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode token private key: %w", err)
+	}
+	rtKey, err := jwt.ParseRSAPrivateKeyFromPEM(rtDecodedPrivateKey)
+
+	if err != nil {
+		return nil, fmt.Errorf("create: parse token private key: %w", err)
+	}
+
+	rtClaims := make(jwt.MapClaims)
+	rtClaims["sub"] = userid
+	rtClaims["token_uuid"] = td.RefreshUuid
+	rtClaims["exp"] = td.RtExpires
+	td.RefreshToken, err = jwt.NewWithClaims(jwt.SigningMethodRS256, rtClaims).SignedString(rtKey)
 	if err != nil {
 		return nil, fmt.Errorf("create: sign token: %w", err)
 	}
@@ -57,7 +71,7 @@ func CreateToken(userid uint, ttl time.Duration, privateKey string) (*TokenDetai
 	return td, nil
 }
 
-func ValidateToken(token string, publicKey string) (*TokenDetails, error) {
+func ValidateToken(token string, publicKey string) (*models.AccessDetails, error) {
 	decodedPublicKey, err := base64.StdEncoding.DecodeString(publicKey)
 	if err != nil {
 		return nil, fmt.Errorf("could not decode: %w", err)
@@ -85,9 +99,18 @@ func ValidateToken(token string, publicKey string) (*TokenDetails, error) {
 		return nil, fmt.Errorf("validate: invalid token")
 	}
 
-	return &TokenDetails{
-		TokenUuid: fmt.Sprint(claims["token_uuid"]),
-		UserID:    fmt.Sprint(claims["sub"]),
+	tokenUuid, ok := claims["token_uuid"].(string)
+	if !ok {
+		return nil, err
+	}
+	userId, err := strconv.ParseUint(fmt.Sprintf("%.f", claims["sub"]), 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.AccessDetails{
+		TokenUuid: tokenUuid,
+		UserID:    uint(userId),
 	}, nil
 }
 
@@ -101,4 +124,18 @@ func ExtractToken(c *fiber.Ctx) string {
 	}
 
 	return ""
+}
+
+func ExtractTokenMetadata(c *fiber.Ctx) (*models.AccessDetails, error) {
+	config, _ := configs.LoadConfig(".")
+
+	tokenString := ExtractToken(c)
+	if tokenString == "" {
+		return nil, errors.New("Unauthorized! No credentials provided.")
+	}
+	token, err := ValidateToken(tokenString, config.AccessTokenPublicKey)
+	if err != nil {
+		return nil, err
+	}
+	return token, nil
 }

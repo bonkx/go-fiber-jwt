@@ -186,9 +186,14 @@ func (h *AuthHandler) RefreshAccessToken(c *fiber.Ctx) error {
 }
 
 func (h *AuthHandler) Logout(c *fiber.Ctx) error {
-	access_token := helpers.ExtractToken(c)
-	// fmt.Println(access_token)
-	if err := h.userUsecase.Logout(access_token); err != nil {
+	token, err := helpers.ExtractTokenMetadata(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	if err := h.userUsecase.Logout(token); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": err.Error(),
 		})

@@ -11,8 +11,8 @@ type UserUsecase struct {
 }
 
 // Logout implements models.UserUsecase.
-func (uc *UserUsecase) Logout(access_token string) error {
-	if err := uc.userRepo.DeleteToken(access_token); err != nil {
+func (uc *UserUsecase) Logout(authD *models.AccessDetails) error {
+	if err := uc.userRepo.DeleteToken(authD); err != nil {
 		return err
 	}
 	return nil

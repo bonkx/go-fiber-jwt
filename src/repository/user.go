@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/thanhpk/randstr"
 	"gorm.io/gorm"
 )
@@ -18,19 +19,40 @@ type UserRepository struct {
 	DB *gorm.DB
 }
 
-// DeleteToken implements models.UserRepository.
-func (*UserRepository) DeleteToken(access_token string) error {
-	config, _ := configs.LoadConfig(".")
+// DeleteAuth implements models.UserRepository.
+func (*UserRepository) DeleteAuthRedis(givenUuid string) (int64, error) {
 	ctx := context.TODO()
-
-	tokenClaims, err := helpers.ValidateToken(access_token, config.AccessTokenPublicKey)
+	deleted, err := configs.RedisClient.Del(ctx, givenUuid).Result()
 	if err != nil {
+		return 0, err
+	}
+	fmt.Println("DeleteAuthRedis: ", deleted)
+	return deleted, nil
+
+}
+
+// DeleteToken implements models.UserRepository.
+func (r *UserRepository) DeleteToken(authD *models.AccessDetails) error {
+	//get the refresh uuid
+	refreshUuid := fmt.Sprintf("%s++%d", authD.TokenUuid, authD.UserID)
+
+	//delete access token
+	fmt.Println("DeleteToken.AccessUuid : ", authD.TokenUuid)
+	deletedAt, err := r.DeleteAuthRedis(authD.TokenUuid)
+	if err != nil || deletedAt == 0 {
 		return err
 	}
 
-	_, err = configs.RedisClient.Del(ctx, tokenClaims.TokenUuid).Result()
-	if err != nil {
+	//delete refresh token
+	fmt.Println("DeleteToken.refreshUuid : ", refreshUuid)
+	deletedRt, err := r.DeleteAuthRedis(refreshUuid)
+	if err != nil || deletedRt == 0 {
 		return err
+	}
+
+	//When the record is deleted, the return value is 1
+	if deletedAt != 1 || deletedRt != 1 {
+		return errors.New("something went wrong")
 	}
 	return nil
 }
@@ -192,11 +214,31 @@ func (r *UserRepository) RefreshToken(ctx context.Context, payload models.Refres
 	// validate refrefresh_token
 	tokenClaims, err := helpers.ValidateToken(payload.RefreshToken, config.RefreshTokenPublicKey)
 	if err != nil {
+		fmt.Println("tokenClaims")
 		return token, err
 	}
+	fmt.Println("tokenClaims PASS")
+
+	refreshUuid := tokenClaims.TokenUuid
+
+	// check refreshUuid in Redis
+	ctxTodo := context.TODO()
+	_, err = configs.RedisClient.Get(ctxTodo, refreshUuid).Result()
+	if err == redis.Nil {
+		return token, errors.New("Token is invalid or session has expired")
+	}
+
+	// fmt.Println("refreshUuid: ", refreshUuid)
+	// //Delete the previous Refresh Token
+	// deletedRt, err := r.DeleteAuthRedis(refreshUuid)
+	// if err != nil || deletedRt == 0 {
+	// 	fmt.Println("deleted")
+	// 	return token, err
+	// }
+	// fmt.Println("DeleteAuthRedis PASS")
 
 	var user models.User
-	err = r.DB.Preload("UserProfile.Status").First(&user, "id = ?", tokenClaims.UserID).Error
+	err = r.DB.First(&user, "id = ?", tokenClaims.UserID).Error
 
 	if err == gorm.ErrRecordNotFound {
 		return token, fmt.Errorf("the user belonging to this token no logger exists")
@@ -205,22 +247,18 @@ func (r *UserRepository) RefreshToken(ctx context.Context, payload models.Refres
 	// generate new tokens
 	token, err = r.GeneratePairToken(user.ID)
 	if err != nil {
+		fmt.Println("GeneratePairToken")
 		return token, err
 	}
+	fmt.Println("GeneratePairToken PASS")
 	return token, nil
 }
 
 // GeneratePairToken implements models.UserRepository.
 func (*UserRepository) GeneratePairToken(userID uint) (models.Token, error) {
 	var token models.Token
-	config, _ := configs.LoadConfig(".")
 
-	accessTokenDetails, err := helpers.CreateToken(userID, config.AccessTokenExpiresIn, config.AccessTokenPrivateKey)
-	if err != nil {
-		return token, err
-	}
-
-	refreshTokenDetails, err := helpers.CreateToken(userID, config.RefreshTokenExpiresIn, config.RefreshTokenPrivateKey)
+	td, err := helpers.CreateToken(userID)
 	if err != nil {
 		return token, err
 	}
@@ -229,20 +267,22 @@ func (*UserRepository) GeneratePairToken(userID uint) (models.Token, error) {
 	ctxTodo := context.TODO()
 	now := time.Now()
 
-	errAccess := configs.RedisClient.Set(ctxTodo, accessTokenDetails.TokenUuid, userID, time.Unix(*accessTokenDetails.ExpiresIn, 0).Sub(now)).Err()
+	fmt.Println("td.AccessUuid : ", td.AccessUuid)
+	errAccess := configs.RedisClient.Set(ctxTodo, td.AccessUuid, userID, time.Unix(td.AtExpires, 0).Sub(now)).Err()
 	if errAccess != nil {
 		return token, errAccess
 	}
 
-	errRefresh := configs.RedisClient.Set(ctxTodo, refreshTokenDetails.TokenUuid, userID, time.Unix(*refreshTokenDetails.ExpiresIn, 0).Sub(now)).Err()
+	fmt.Println("td.RefreshUuid : ", td.RefreshUuid)
+	errRefresh := configs.RedisClient.Set(ctxTodo, td.RefreshUuid, userID, time.Unix(td.RtExpires, 0).Sub(now)).Err()
 	if errRefresh != nil {
 		return token, errRefresh
 	}
 
-	token.AccessToken = accessTokenDetails.Token
-	token.RefreshToken = refreshTokenDetails.Token
-	token.ExpiresIn = accessTokenDetails.ExpiresIn
-	token.TokenType = accessTokenDetails.TokenType
+	token.AccessToken = td.AccessToken
+	token.RefreshToken = td.RefreshToken
+	token.ExpiresIn = td.AtExpires
+	token.TokenType = td.TokenType
 
 	return token, nil
 }
@@ -253,6 +293,7 @@ func (r *UserRepository) Login(ctx context.Context, user models.User) (models.To
 	if err != nil {
 		return token, err
 	}
+	fmt.Println("Login PASS")
 	return token, nil
 }
 
