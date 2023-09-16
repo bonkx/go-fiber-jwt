@@ -20,7 +20,7 @@ With pattern Handler, Usecase, Repository
   - [x] Open Link Verification Email
   - [x] Resend Verification Email Code
   - [x] Login
-  - [x] JWT Auth Middleware
+  - [x] JWT Auth Middleware + Redis
   - [x] Refresh Token
   - [ ] Forgot Password
   - [ ] Forgot Password Verify OTP
@@ -108,7 +108,7 @@ go to [https://www.libvips.org/](https://www.libvips.org/)
 
 ### Credit
 
-[tutorial-go-fiber-rest-api](https://github.com/koddr/tutorial-go-fiber-rest-api)
+[tutorial-go-fiber-rest-api](https://github.com/koddr/tutorial-go-fiber-rest-api)  
 [Twilio](https://www.twilio.com/blog/build-restful-api-using-golang-and-gin)  
-[Vinika Anthwal - Medium](https://medium.com/@22vinikaanthwal/register-login-api-with-jwt-authentication-in-golang-gin-740633e5707b)  
-[codevoweb.com](https://codevoweb.com/how-to-properly-use-jwt-for-authentication-in-golang/)
+[Vinika Anthwal - Medium](https://medium.com/@22vinikaanthwal/register-login-api-with-jwt-authentication-in-golang-gin-740633e5707b) - [Github](https://github.com/VinikaAnthwal/go-jwt)  
+[codevoweb.com](https://codevoweb.com/how-to-properly-use-jwt-for-authentication-in-golang/) - [Github](https://github.com/wpcodevo/golang-fiber-jwt-rs256)

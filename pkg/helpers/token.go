@@ -3,8 +3,10 @@ package helpers
 import (
 	"encoding/base64"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	uuid "github.com/satori/go.uuid"
 )
@@ -87,4 +89,16 @@ func ValidateToken(token string, publicKey string) (*TokenDetails, error) {
 		TokenUuid: fmt.Sprint(claims["token_uuid"]),
 		UserID:    fmt.Sprint(claims["sub"]),
 	}, nil
+}
+
+func ExtractToken(c *fiber.Ctx) string {
+	bearToken := c.Get("Authorization")
+
+	// Normally Authorization HTTP header.
+	onlyToken := strings.Split(bearToken, " ")
+	if len(onlyToken) == 2 {
+		return onlyToken[1]
+	}
+
+	return ""
 }

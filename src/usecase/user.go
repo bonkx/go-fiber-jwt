@@ -10,10 +10,18 @@ type UserUsecase struct {
 	userRepo models.UserRepository
 }
 
+// Logout implements models.UserUsecase.
+func (uc *UserUsecase) Logout(access_token string) error {
+	if err := uc.userRepo.DeleteToken(access_token); err != nil {
+		return err
+	}
+	return nil
+}
+
 // ResendVerificationCode implements models.UserUsecase.
-func (uc *UserUsecase) ResendVerificationCode(c context.Context, email string) error {
+func (uc *UserUsecase) ResendVerificationCode(ctx context.Context, email string) error {
 	// get user based on email param
-	user, err := uc.userRepo.FindUserByEmail(c, email)
+	user, err := uc.userRepo.FindUserByEmail(ctx, email)
 	if err != nil {
 		return err
 	}

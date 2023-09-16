@@ -15,7 +15,7 @@ func init() {
 		log.Fatalln("Failed to load environment variables! \n", err.Error())
 	}
 	configs.ConnectDB(&envConfig)
-	// configs.ConnectRedis(&envConfig)
+	configs.ConnectRedis(&envConfig)
 }
 
 func main() {

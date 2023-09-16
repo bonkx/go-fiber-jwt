@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"myapp/pkg/helpers"
+	middleware "myapp/pkg/middleware"
 	"myapp/src/models"
 
 	"github.com/gofiber/fiber/v2"
@@ -23,6 +24,7 @@ func NewAuthHandler(r fiber.Router, userUsecase models.UserUsecase) {
 	auth.Post("/request-verify-code", handler.RequestVerifyCode)
 	auth.Post("/login", handler.Login)
 	auth.Post("/refresh", handler.RefreshAccessToken)
+	auth.Post("/logout", middleware.JWTAuthMiddleware(), handler.Logout)
 
 }
 
@@ -143,7 +145,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		})
 	}
 
-	// config, _ := initializers.LoadConfig(".")
+	// config, _ := configs.LoadConfig(".")
 	// // set cookie
 	// ctx.SetCookie("access_token", token.AccessToken, config.AccessTokenMaxAge*60, "/", "localhost", false, true)
 	// ctx.SetCookie("refresh_token", token.RefreshToken, config.RefreshTokenMaxAge*60, "/", "localhost", false, true)
@@ -183,44 +185,14 @@ func (h *AuthHandler) RefreshAccessToken(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(token)
 }
 
-// func LogoutUser(c *fiber.Ctx) error {
-// 	message := "Token is invalid or session has expired"
+func (h *AuthHandler) Logout(c *fiber.Ctx) error {
+	access_token := helpers.ExtractToken(c)
+	// fmt.Println(access_token)
+	if err := h.userUsecase.Logout(access_token); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
 
-// 	refresh_token := c.Cookies("refresh_token")
-
-// 	if refresh_token == "" {
-// 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"status": "fail", "message": message})
-// 	}
-
-// 	config, _ := initializers.LoadConfig(".")
-// 	ctx := context.TODO()
-
-// 	tokenClaims, err := utils.ValidateToken(refresh_token, config.RefreshTokenPublicKey)
-// 	if err != nil {
-// 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"status": "fail", "message": err.Error()})
-// 	}
-
-// 	access_token_uuid := c.Locals("access_token_uuid").(string)
-// 	_, err = initializers.RedisClient.Del(ctx, tokenClaims.TokenUuid, access_token_uuid).Result()
-// 	if err != nil {
-// 		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "fail", "message": err.Error()})
-// 	}
-
-// 	expired := time.Now().Add(-time.Hour * 24)
-// 	c.Cookie(&fiber.Cookie{
-// 		Name:    "access_token",
-// 		Value:   "",
-// 		Expires: expired,
-// 	})
-// 	c.Cookie(&fiber.Cookie{
-// 		Name:    "refresh_token",
-// 		Value:   "",
-// 		Expires: expired,
-// 	})
-// 	c.Cookie(&fiber.Cookie{
-// 		Name:    "logged_in",
-// 		Value:   "",
-// 		Expires: expired,
-// 	})
-// 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success"})
-// }
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Logout success"})
+}

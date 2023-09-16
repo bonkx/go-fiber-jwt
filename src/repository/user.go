@@ -18,6 +18,23 @@ type UserRepository struct {
 	DB *gorm.DB
 }
 
+// DeleteToken implements models.UserRepository.
+func (*UserRepository) DeleteToken(access_token string) error {
+	config, _ := configs.LoadConfig(".")
+	ctx := context.TODO()
+
+	tokenClaims, err := helpers.ValidateToken(access_token, config.AccessTokenPublicKey)
+	if err != nil {
+		return err
+	}
+
+	_, err = configs.RedisClient.Del(ctx, tokenClaims.TokenUuid).Result()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // SendVerificationEmail implements models.UserRepository.
 func (*UserRepository) SendVerificationEmail(user models.User, code string) error {
 	var accountName = user.FirstName
@@ -186,15 +203,15 @@ func (r *UserRepository) RefreshToken(ctx context.Context, payload models.Refres
 	}
 
 	// generate new tokens
-	token, err = r.GeneratepairToken(user.ID)
+	token, err = r.GeneratePairToken(user.ID)
 	if err != nil {
 		return token, err
 	}
 	return token, nil
 }
 
-// GeneratepairToken implements models.UserRepository.
-func (*UserRepository) GeneratepairToken(userID uint) (models.Token, error) {
+// GeneratePairToken implements models.UserRepository.
+func (*UserRepository) GeneratePairToken(userID uint) (models.Token, error) {
 	var token models.Token
 	config, _ := configs.LoadConfig(".")
 
@@ -208,9 +225,23 @@ func (*UserRepository) GeneratepairToken(userID uint) (models.Token, error) {
 		return token, err
 	}
 
-	token.AccessToken = *accessTokenDetails.Token
-	token.RefreshToken = *refreshTokenDetails.Token
-	token.ExpiresIn = *accessTokenDetails.ExpiresIn
+	// Save Token in Redis
+	ctxTodo := context.TODO()
+	now := time.Now()
+
+	errAccess := configs.RedisClient.Set(ctxTodo, accessTokenDetails.TokenUuid, userID, time.Unix(*accessTokenDetails.ExpiresIn, 0).Sub(now)).Err()
+	if errAccess != nil {
+		return token, errAccess
+	}
+
+	errRefresh := configs.RedisClient.Set(ctxTodo, refreshTokenDetails.TokenUuid, userID, time.Unix(*refreshTokenDetails.ExpiresIn, 0).Sub(now)).Err()
+	if errRefresh != nil {
+		return token, errRefresh
+	}
+
+	token.AccessToken = accessTokenDetails.Token
+	token.RefreshToken = refreshTokenDetails.Token
+	token.ExpiresIn = accessTokenDetails.ExpiresIn
 	token.TokenType = accessTokenDetails.TokenType
 
 	return token, nil
@@ -218,7 +249,7 @@ func (*UserRepository) GeneratepairToken(userID uint) (models.Token, error) {
 
 // Login implements models.UserRepository.
 func (r *UserRepository) Login(ctx context.Context, user models.User) (models.Token, error) {
-	token, err := r.GeneratepairToken(user.ID)
+	token, err := r.GeneratePairToken(user.ID)
 	if err != nil {
 		return token, err
 	}
