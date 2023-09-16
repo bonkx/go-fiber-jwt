@@ -83,7 +83,7 @@ func (r *UserRepository) VerificationEmail(ctx context.Context, code string) err
 	user.VerifiedAt = &now
 
 	// run update userprofile.statud_id to 1 (Active)
-	r.DB.Model(&models.UserProfile{}).Where("id = ?", user.UserProfile.ID).
+	r.DB.Model(&models.UserProfile{}).Where("user_id = ?", user.ID).
 		Update("status_id", 1)
 
 	err := r.DB.Save(&user).Error
