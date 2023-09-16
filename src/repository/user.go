@@ -8,6 +8,7 @@ import (
 	"myapp/pkg/helpers"
 	"myapp/src/models"
 	"strings"
+	"time"
 
 	"github.com/thanhpk/randstr"
 	"gorm.io/gorm"
@@ -15,6 +16,37 @@ import (
 
 type UserRepository struct {
 	DB *gorm.DB
+}
+
+// VerificationEmail implements models.UserRepository.
+func (r *UserRepository) VerificationEmail(ctx context.Context, code string) error {
+	verification_code := helpers.Encode(code)
+
+	var user models.User
+	result := r.DB.First(&user, "verification_code = ?", verification_code)
+	if result.Error != nil {
+		return errors.New("Invalid verification code or user doesn't exists.")
+	}
+
+	if user.Verified {
+		return errors.New("User already verified.")
+	}
+
+	now := time.Now()
+	user.VerificationCode = ""
+	user.Verified = true
+	user.VerifiedAt = &now
+
+	// run update userprofile.statud_id to 1 (Active)
+	r.DB.Model(&models.UserProfile{}).Where("user_id = ?", user.ID).
+		Update("status_id", 1)
+
+	err := r.DB.Save(&user).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // EmailExists implements models.UserRepository.
@@ -140,6 +172,14 @@ func (r *UserRepository) Login(ctx context.Context, payload models.LoginInput) (
 // Register implements models.UserRepository.
 func (r *UserRepository) Register(ctx context.Context, user models.User) (models.User, error) {
 
+	// Generate Verification Code
+	code := randstr.String(64)
+
+	verification_code := helpers.Encode(code)
+
+	// fill User verification code
+	user.VerificationCode = verification_code
+
 	err := r.DB.Create(&user).Error
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key value violates unique") {
@@ -149,15 +189,6 @@ func (r *UserRepository) Register(ctx context.Context, user models.User) (models
 
 		return user, err
 	}
-
-	// Generate Verification Code
-	code := randstr.String(50)
-
-	verification_code := helpers.Encode(code)
-
-	// Update User in Database
-	user.VerificationCode = verification_code
-	r.DB.Save(&user)
 
 	var accountName = user.FirstName
 
@@ -172,7 +203,7 @@ func (r *UserRepository) Register(ctx context.Context, user models.User) (models
 	siteData, _ := configs.GetSiteData(".")
 	// Send Email if register successfully
 	emailData := helpers.EmailData{
-		URL:          siteData.ClientOrigin + "/api/v1/verify-email/" + code,
+		URL:          siteData.ClientOrigin + "/verify-email/" + code,
 		FirstName:    accountName,
 		Subject:      "Your account verification",
 		TypeOfAction: "Register",

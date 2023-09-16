@@ -21,4 +21,6 @@ func APIRoutes(a *fiber.App, db *gorm.DB) {
 	// AuthRoute
 	_handler.NewAuthHandler(v1, ucUser)
 
+	// test routes
+	_handler.NewEmailHandler(a, ucUser)
 }

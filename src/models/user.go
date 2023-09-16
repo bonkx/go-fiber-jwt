@@ -19,9 +19,9 @@ type User struct {
 	Username         string     `json:"username" gorm:"not null;unique"`
 	Email            string     `json:"email" binding:"required" gorm:"unique"`
 	Password         string     `json:"-" binding:"required"`
-	Verified         *bool      `gorm:"not null;default:false"`
-	IsSuperuser      *bool      `json:"is_superuser" gorm:"default:false"`
-	IsStaff          *bool      `json:"is_staff" gorm:"default:false"`
+	Verified         bool       `gorm:"not null;default:false"`
+	IsSuperuser      bool       `json:"is_superuser" gorm:"default:false"`
+	IsStaff          bool       `json:"is_staff" gorm:"default:false"`
 	LastLogin        *time.Time `json:"last_login"`
 	VerificationCode string     `json:"verification_code"`
 	VerifiedAt       *time.Time `json:"verified_at"`
@@ -56,6 +56,7 @@ type UserUsecase interface {
 	Register(ctx context.Context, payload RegisterInput) (User, error)
 	Login(ctx context.Context, payload LoginInput) (Token, error)
 	RefreshToken(ctx context.Context, payload RefreshTokenInput) (Token, error)
+	VerificationEmail(ctx context.Context, code string) error
 
 	// Create(ctx context.Context, md User) error
 	// Update(ctx context.Context, md User) error
@@ -68,6 +69,7 @@ type UserRepository interface {
 	Register(ctx context.Context, md User) (User, error)
 	Login(ctx context.Context, payload LoginInput) (Token, error)
 	RefreshToken(ctx context.Context, payload RefreshTokenInput) (Token, error)
+	VerificationEmail(ctx context.Context, code string) error
 
 	EmailExists(email string) error
 	UsernameExists(username string) error

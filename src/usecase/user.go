@@ -9,6 +9,15 @@ type UserUsecase struct {
 	userRepo models.UserRepository
 }
 
+// VerificationEmail implements models.UserUsecase.
+func (uc *UserUsecase) VerificationEmail(ctx context.Context, code string) error {
+	err := uc.userRepo.VerificationEmail(ctx, code)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // RefreshToken implements models.UserUsecase.
 func (uc *UserUsecase) RefreshToken(ctx context.Context, payload models.RefreshTokenInput) (models.Token, error) {
 	data, err := uc.userRepo.RefreshToken(ctx, payload)
