@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"html"
 	"strings"
 	"time"
@@ -32,7 +33,7 @@ type User struct {
 func (user *User) BeforeCreate(*gorm.DB) error {
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not hash password %w", err)
 	}
 	user.Password = string(passwordHash)
 	user.Username = html.EscapeString(strings.TrimSpace(user.Username))
@@ -69,7 +70,9 @@ type UserRepository interface {
 	Register(ctx context.Context, md User) (User, error)
 	Login(ctx context.Context, md User) (Token, error)
 	RefreshToken(ctx context.Context, payload RefreshTokenInput) (Token, error)
+	GeneratepairToken(userID uint) (Token, error)
 	VerificationEmail(ctx context.Context, code string) error
+	SendVerificationEmail(md User, code string) error
 	ResendVerificationCode(md User) error
 
 	EmailExists(email string) error

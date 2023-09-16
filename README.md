@@ -17,11 +17,14 @@ With pattern Handler, Usecase, Repository
 - [ ] Auth
   - [x] Register, Send verification Email
   - [x] Send Email with Goroutines
-  - [x] Open Link Verification Email 
+  - [x] Open Link Verification Email
   - [x] Resend Verification Email Code
   - [x] Login
   - [x] JWT Auth Middleware
-  - [ ] Refresh Token
+  - [x] Refresh Token
+  - [ ] Forgot Password
+  - [ ] Forgot Password Verify OTP
+  - [ ] Change Password
   - [ ] Logout
 - [ ] CRUD
   - [ ] Pagination with custom Paginate [pagination-using-gorm-scopes](https://dev.to/rafaelgfirmino/pagination-using-gorm-scopes-3k5f)
@@ -104,6 +107,7 @@ go to [https://www.libvips.org/](https://www.libvips.org/)
   - [ ] Delete (De Activated)
 
 ### Credit
+
 [tutorial-go-fiber-rest-api](https://github.com/koddr/tutorial-go-fiber-rest-api)
 [Twilio](https://www.twilio.com/blog/build-restful-api-using-golang-and-gin)  
 [Vinika Anthwal - Medium](https://medium.com/@22vinikaanthwal/register-login-api-with-jwt-authentication-in-golang-gin-740633e5707b)  

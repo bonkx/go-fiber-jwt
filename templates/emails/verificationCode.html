@@ -1,5 +1,7 @@
-{{template "base" .}}
+{{template "email_base" .}}
 {{define "content"}}
+
+<!-- start hero -->
 <tr>
   <td align="center" bgcolor="#e9ecef">
     <!--[if (gte mso 9)|(IE)]>
@@ -10,8 +12,8 @@
     <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px">
       <tr>
         <td align="left" bgcolor="#ffffff"
-          style="padding: 36px 24px 0;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif;border-top: 3px solid #d4dadf;">
-          <h1 style="margin: 0;font-size: 32px;font-weight: 700;letter-spacing: -1px;line-height: 48px;">
+          style="padding: 36px 24px 0; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; border-top: 3px solid #d4dadf;">
+          <h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -1px; line-height: 48px;">
             Confirm Your Email Address
           </h1>
         </td>
@@ -24,6 +26,7 @@
   <![endif]-->
   </td>
 </tr>
+<!-- end hero -->
 
 
 <!-- start copy block -->
@@ -83,7 +86,7 @@
             If that doesn't work, copy and paste the following link in your
             browser:
           </p>
-          <p style="margin: 0">
+          <p style="margin: 0; word-break: break-all; white-space: normal;">
             <a href="{{ .URL }}" target="_blank">{{ .URL }}</a>
           </p>
         </td>

@@ -47,7 +47,7 @@ func (h *EmailHandler) registerEmail(c *fiber.Ctx) error {
 	siteData, _ := configs.GetSiteData(".")
 
 	emailData := helpers.EmailData{
-		URL:          siteData.ClientOrigin + "/api/v1/verify-email/" + "code",
+		URL:          siteData.ClientOrigin + "/verify-email/" + "QdkGUPVhjqu7sy7hGQqsGmg2YOOx9OIcyZQveNPljRpmWuE9NKMQ1pz6x49mEGfm",
 		FirstName:    "Admin",
 		Subject:      "Your account verification",
 		TypeOfAction: "Register",

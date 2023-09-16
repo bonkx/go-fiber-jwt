@@ -3,6 +3,7 @@ package helpers
 import (
 	"bytes"
 	"crypto/tls"
+	"fmt"
 	"html/template"
 	"log"
 	"myapp/pkg/configs"
@@ -41,7 +42,7 @@ func ParseTemplateDir(dir string) (*template.Template, error) {
 	return template.ParseFiles(paths...)
 }
 
-func SendEmail(user models.User, emailData *EmailData, emailTemplate string) {
+func SendEmail(user models.User, emailData *EmailData, emailTemplatename string) {
 	config, err := configs.LoadConfig(".")
 
 	if err != nil {
@@ -69,6 +70,7 @@ func SendEmail(user models.User, emailData *EmailData, emailTemplate string) {
 		log.Fatal("Could not parse template", err)
 	}
 
+	emailTemplate := fmt.Sprintf("%s.html", emailTemplatename)
 	template.ExecuteTemplate(&body, emailTemplate, &emailData)
 
 	m := gomail.NewMessage()

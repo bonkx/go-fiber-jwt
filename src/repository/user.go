@@ -18,21 +18,8 @@ type UserRepository struct {
 	DB *gorm.DB
 }
 
-// ResendVerificationCode implements models.UserRepository.
-func (r *UserRepository) ResendVerificationCode(user models.User) error {
-	if user.Verified {
-		return errors.New("User already verified. You can login now.")
-	}
-
-	// Generate Verification Code
-	code := randstr.String(50)
-
-	verification_code := helpers.Encode(code)
-
-	// Update User in Database
-	user.VerificationCode = verification_code
-	r.DB.Save(&user)
-
+// SendVerificationEmail implements models.UserRepository.
+func (*UserRepository) SendVerificationEmail(user models.User, code string) error {
 	var accountName = user.FirstName
 
 	if accountName != "" {
@@ -54,7 +41,28 @@ func (r *UserRepository) ResendVerificationCode(user models.User) error {
 	}
 
 	// send email with goroutine
-	go helpers.SendEmail(user, &emailData, "verificationCode.html")
+	go helpers.SendEmail(user, &emailData, "verificationCode")
+
+	return nil
+}
+
+// ResendVerificationCode implements models.UserRepository.
+func (r *UserRepository) ResendVerificationCode(user models.User) error {
+	if user.Verified {
+		return errors.New("User already verified. You can login now.")
+	}
+
+	// Generate Verification Code
+	code := randstr.String(64)
+
+	verification_code := helpers.Encode(code)
+
+	// Update User in Database
+	user.VerificationCode = verification_code
+	r.DB.Save(&user)
+
+	// Send verification email
+	r.SendVerificationEmail(user, code)
 
 	return nil
 }
@@ -69,17 +77,13 @@ func (r *UserRepository) VerificationEmail(ctx context.Context, code string) err
 		return errors.New("Invalid verification code or user doesn't exists.")
 	}
 
-	if user.Verified {
-		return errors.New("User already verified.")
-	}
-
 	now := time.Now()
 	user.VerificationCode = ""
 	user.Verified = true
 	user.VerifiedAt = &now
 
 	// run update userprofile.statud_id to 1 (Active)
-	r.DB.Model(&models.UserProfile{}).Where("user_id = ?", user.ID).
+	r.DB.Model(&models.UserProfile{}).Where("id = ?", user.UserProfile.ID).
 		Update("status_id", 1)
 
 	err := r.DB.Save(&user).Error
@@ -116,46 +120,6 @@ func (r *UserRepository) UsernameExists(username string) error {
 		return errors.New("Username already registered, please use another one!")
 	}
 	return nil
-}
-
-// RefreshToken implements models.UserRepository.
-func (r *UserRepository) RefreshToken(ctx context.Context, payload models.RefreshTokenInput) (models.Token, error) {
-	var token models.Token
-
-	refresh_token := payload.RefreshToken
-
-	config, _ := configs.LoadConfig(".")
-
-	// validate refrefresh_token
-	tokenClaims, err := helpers.ValidateToken(refresh_token, config.RefreshTokenPublicKey)
-	if err != nil {
-		return token, err
-	}
-
-	var user models.User
-	err = r.DB.Preload("UserProfile.Status").First(&user, "id = ?", tokenClaims.UserID).Error
-
-	if err == gorm.ErrRecordNotFound {
-		return token, fmt.Errorf("the user belonging to this token no logger exists")
-	}
-
-	// generate new tokens
-	accessTokenDetails, err := helpers.CreateToken(fmt.Sprint(user.ID), config.AccessTokenExpiresIn, config.AccessTokenPrivateKey)
-	if err != nil {
-		return token, err
-	}
-
-	refreshTokenDetails, err := helpers.CreateToken(fmt.Sprint(user.ID), config.RefreshTokenExpiresIn, config.RefreshTokenPrivateKey)
-	if err != nil {
-		return token, err
-	}
-
-	token.AccessToken = *accessTokenDetails.Token
-	token.RefreshToken = *refreshTokenDetails.Token
-	token.ExpiresIn = *accessTokenDetails.ExpiresIn
-	token.TokenType = accessTokenDetails.TokenType
-
-	return token, nil
 }
 
 // Create implements models.UserRepository.
@@ -203,18 +167,43 @@ func (r *UserRepository) FindUserByIdentity(ctx context.Context, identity string
 	return user, nil
 }
 
-// Login implements models.UserRepository.
-func (r *UserRepository) Login(ctx context.Context, user models.User) (models.Token, error) {
+// RefreshToken implements models.UserRepository.
+func (r *UserRepository) RefreshToken(ctx context.Context, payload models.RefreshTokenInput) (models.Token, error) {
 	var token models.Token
-
 	config, _ := configs.LoadConfig(".")
 
-	accessTokenDetails, err := helpers.CreateToken(fmt.Sprint(user.ID), config.AccessTokenExpiresIn, config.AccessTokenPrivateKey)
+	// validate refrefresh_token
+	tokenClaims, err := helpers.ValidateToken(payload.RefreshToken, config.RefreshTokenPublicKey)
 	if err != nil {
 		return token, err
 	}
 
-	refreshTokenDetails, err := helpers.CreateToken(fmt.Sprint(user.ID), config.RefreshTokenExpiresIn, config.RefreshTokenPrivateKey)
+	var user models.User
+	err = r.DB.Preload("UserProfile.Status").First(&user, "id = ?", tokenClaims.UserID).Error
+
+	if err == gorm.ErrRecordNotFound {
+		return token, fmt.Errorf("the user belonging to this token no logger exists")
+	}
+
+	// generate new tokens
+	token, err = r.GeneratepairToken(user.ID)
+	if err != nil {
+		return token, err
+	}
+	return token, nil
+}
+
+// GeneratepairToken implements models.UserRepository.
+func (*UserRepository) GeneratepairToken(userID uint) (models.Token, error) {
+	var token models.Token
+	config, _ := configs.LoadConfig(".")
+
+	accessTokenDetails, err := helpers.CreateToken(userID, config.AccessTokenExpiresIn, config.AccessTokenPrivateKey)
+	if err != nil {
+		return token, err
+	}
+
+	refreshTokenDetails, err := helpers.CreateToken(userID, config.RefreshTokenExpiresIn, config.RefreshTokenPrivateKey)
 	if err != nil {
 		return token, err
 	}
@@ -227,9 +216,17 @@ func (r *UserRepository) Login(ctx context.Context, user models.User) (models.To
 	return token, nil
 }
 
+// Login implements models.UserRepository.
+func (r *UserRepository) Login(ctx context.Context, user models.User) (models.Token, error) {
+	token, err := r.GeneratepairToken(user.ID)
+	if err != nil {
+		return token, err
+	}
+	return token, nil
+}
+
 // Register implements models.UserRepository.
 func (r *UserRepository) Register(ctx context.Context, user models.User) (models.User, error) {
-
 	// Generate Verification Code
 	code := randstr.String(64)
 
@@ -248,28 +245,8 @@ func (r *UserRepository) Register(ctx context.Context, user models.User) (models
 		return user, err
 	}
 
-	var accountName = user.FirstName
-
-	if accountName != "" {
-		if strings.Contains(accountName, " ") {
-			accountName = strings.Split(accountName, " ")[1]
-		}
-	} else {
-		accountName = user.Email
-	}
-
-	siteData, _ := configs.GetSiteData(".")
-	// Send Email if register successfully
-	emailData := helpers.EmailData{
-		URL:          siteData.ClientOrigin + "/verify-email/" + code,
-		FirstName:    accountName,
-		Subject:      "Your account verification",
-		TypeOfAction: "Register",
-		SiteData:     siteData,
-	}
-
-	// send email with goroutine
-	go helpers.SendEmail(user, &emailData, "verificationCode.html")
+	// Send verification email
+	r.SendVerificationEmail(user, code)
 
 	return user, nil
 }

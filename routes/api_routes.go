@@ -18,8 +18,10 @@ func APIRoutes(a *fiber.App, db *gorm.DB) {
 	ucUser := _useCase.NewUserUsecase(repoUser)
 
 	// ROUTES
-	// AuthRoute
+	// Auth route
 	_handler.NewAuthHandler(v1, ucUser)
+	// Account route
+	_handler.NewAccountHandler(v1, ucUser)
 
 	// test routes
 	_handler.NewEmailHandler(a, ucUser)

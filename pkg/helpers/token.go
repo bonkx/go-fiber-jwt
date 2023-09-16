@@ -17,7 +17,7 @@ type TokenDetails struct {
 	TokenType string
 }
 
-func CreateToken(userid string, ttl time.Duration, privateKey string) (*TokenDetails, error) {
+func CreateToken(userid uint, ttl time.Duration, privateKey string) (*TokenDetails, error) {
 	now := time.Now().UTC()
 	td := &TokenDetails{
 		ExpiresIn: new(int64),
@@ -28,7 +28,7 @@ func CreateToken(userid string, ttl time.Duration, privateKey string) (*TokenDet
 	// *td.ExpiresIn = int64(ttl.Seconds())
 	*td.ExpiresIn = now.Add(ttl).Unix()
 	td.TokenUuid = uuid.NewV4().String()
-	td.UserID = userid
+	td.UserID = fmt.Sprint(userid)
 
 	decodedPrivateKey, err := base64.StdEncoding.DecodeString(privateKey)
 	if err != nil {

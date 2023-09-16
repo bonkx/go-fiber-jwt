@@ -53,7 +53,7 @@ func (uc *UserUsecase) Login(ctx context.Context, payload models.LoginInput) (mo
 	}
 
 	if !user.Verified {
-		return models.Token{}, errors.New("Your account is not yet active, please verify your email.")
+		return models.Token{}, errors.New("Your account is not active yet, please verify your email.")
 	}
 
 	if err := user.ValidatePassword(payload.Password); err != nil {
