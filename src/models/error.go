@@ -7,7 +7,7 @@ type ErrorDetailsResponse struct {
 }
 
 type ErrorResponse struct {
-	FailedField string
-	Tag         string
-	Value       string
+	Field   string
+	Tag     string
+	Message string
 }

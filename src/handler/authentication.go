@@ -44,15 +44,15 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	}
 
 	// form POST validation
-	errors := models.ValidateStruct(&payload)
-	if errors != nil {
-		errD := models.ErrorDetailsResponse{
-			Code:    fiber.ErrUnprocessableEntity.Code,
-			Message: fiber.ErrUnprocessableEntity.Message,
-			Errors:  errors,
-		}
-		return c.Status(fiber.StatusUnprocessableEntity).JSON(errD)
-	}
+	// errors := models.ValidateStruct[models.RegisterInput](&payload)
+	// if errors != nil {
+	// 	errD := models.ErrorDetailsResponse{
+	// 		Code:    fiber.ErrUnprocessableEntity.Code,
+	// 		Message: fiber.ErrUnprocessableEntity.Message,
+	// 		Errors:  errors,
+	// 	}
+	// 	return c.Status(fiber.StatusUnprocessableEntity).JSON(errD)
+	// }
 
 	if payload.Phone != "" {
 		phone_number_validated := helpers.FormatPhoneNumber(payload.Phone)
@@ -94,7 +94,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	}
 
 	// form POST validation
-	errors := models.ValidateStruct(&payload)
+	errors := models.ValidateStruct(payload)
 	if errors != nil {
 		errD := models.ErrorDetailsResponse{
 			Code:    fiber.ErrUnprocessableEntity.Code,
@@ -153,9 +153,7 @@ func (h *AuthHandler) RefreshAccessToken(c *fiber.Ctx) error {
 }
 
 func (h *AuthHandler) RequestVerifyCode(c *fiber.Ctx) error {
-	payload := struct {
-		Email string `json:"email" validate:"required,email"`
-	}{}
+	var payload models.RequestVerifyCodeInput
 
 	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -164,15 +162,15 @@ func (h *AuthHandler) RequestVerifyCode(c *fiber.Ctx) error {
 	}
 
 	// form POST validations
-	errors := models.ValidateStruct(payload)
-	if errors != nil {
-		errD := models.ErrorDetailsResponse{
-			Code:    fiber.ErrUnprocessableEntity.Code,
-			Message: fiber.ErrUnprocessableEntity.Message,
-			Errors:  errors,
-		}
-		return c.Status(fiber.StatusUnprocessableEntity).JSON(errD)
-	}
+	// errors := models.ValidateStruct[models.RequestVerifyCodeInput](payload)
+	// if errors != nil {
+	// 	errD := models.ErrorDetailsResponse{
+	// 		Code:    fiber.ErrUnprocessableEntity.Code,
+	// 		Message: fiber.ErrUnprocessableEntity.Message,
+	// 		Errors:  errors,
+	// 	}
+	// 	return c.Status(fiber.StatusUnprocessableEntity).JSON(errD)
+	// }
 
 	err := h.userUsecase.ResendVerificationCode(c.Context(), payload.Email)
 	if err != nil {

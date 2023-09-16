@@ -93,8 +93,12 @@ func (r *UserRepository) VerificationEmail(ctx context.Context, code string) err
 // EmailExists implements models.UserRepository.
 func (r *UserRepository) EmailExists(email string) error {
 	var user models.User
-	err := r.DB.Where("email = ?", strings.ToLower(email)).Find(&user).Error
-	if err != nil {
+	result := r.DB.Where("email = ?", strings.ToLower(email)).Find(&user)
+	if result.Error != nil {
+		return errors.New(result.Error.Error())
+	}
+
+	if result.RowsAffected != 0 {
 		return errors.New("Email already registered, please use another one!")
 	}
 	return nil
@@ -103,8 +107,12 @@ func (r *UserRepository) EmailExists(email string) error {
 // UsernameExists implements models.UserRepository.
 func (r *UserRepository) UsernameExists(username string) error {
 	var user models.User
-	err := r.DB.Where("username = ?", strings.ToLower(username)).Find(&user).Error
-	if err != nil {
+	result := r.DB.Where("username = ?", strings.ToLower(username)).Find(&user)
+	if result.Error != nil {
+		return errors.New(result.Error.Error())
+	}
+
+	if result.RowsAffected != 0 {
 		return errors.New("Username already registered, please use another one!")
 	}
 	return nil
@@ -189,26 +197,15 @@ func (r *UserRepository) FindUserByIdentity(ctx context.Context, identity string
 	}
 
 	if result.RowsAffected == 0 {
-		return user, errors.New("Account doesn't exists.")
+		return user, errors.New("Invalid Email or Account doesn't exists.")
 	}
 
 	return user, nil
 }
 
 // Login implements models.UserRepository.
-func (r *UserRepository) Login(ctx context.Context, payload models.LoginInput) (models.Token, error) {
+func (r *UserRepository) Login(ctx context.Context, user models.User) (models.Token, error) {
 	var token models.Token
-
-	user, err := r.FindUserByIdentity(ctx, payload.Username)
-	if err != nil {
-		fmt.Println(err)
-		return token, err
-	}
-
-	err = user.ValidatePassword(payload.Password)
-	if err != nil {
-		return token, fmt.Errorf("invalid email/username or password")
-	}
 
 	config, _ := configs.LoadConfig(".")
 

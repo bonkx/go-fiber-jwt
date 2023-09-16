@@ -22,8 +22,9 @@ func JWTAuthMiddleware() fiber.Handler {
 
 		if access_token == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"message": errors.New(fiber.ErrUnauthorized.Message),
-				"error":   errors.New("Unauthorized! No credentials provided."),
+				"code":    fiber.ErrUnauthorized.Code,
+				"error":   fiber.ErrUnauthorized.Message,
+				"message": errors.New("Unauthorized! No credentials provided."),
 			})
 		}
 
@@ -32,8 +33,9 @@ func JWTAuthMiddleware() fiber.Handler {
 		tokenClaims, err := helpers.ValidateToken(access_token, config.AccessTokenPublicKey)
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"message": errors.New(fiber.ErrForbidden.Message),
-				"error":   err.Error(),
+				"code":    fiber.ErrUnauthorized.Code,
+				"error":   fiber.ErrUnauthorized.Message,
+				"message": err.Error(),
 			})
 		}
 
@@ -42,8 +44,9 @@ func JWTAuthMiddleware() fiber.Handler {
 
 		if err == gorm.ErrRecordNotFound {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"message": errors.New(fiber.ErrForbidden.Message),
-				"error":   "the user belonging to this token no logger exists",
+				"code":    fiber.ErrUnauthorized.Code,
+				"error":   fiber.ErrUnauthorized.Message,
+				"message": "the user belonging to this token no logger exists",
 			})
 		}
 

@@ -1,7 +1,10 @@
 package models
 
 import (
+	"errors"
 	"fmt"
+	"reflect"
+	"strings"
 
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/id"
@@ -19,8 +22,40 @@ var (
 	trans    *ut.Translator
 )
 
-func ValidateStruct(data interface{}) []*ErrorResponse {
+func getJSONField(data interface{}, snp string, fieldname string) error {
+	if !strings.Contains(snp, fieldname) {
+		return nil
+	}
 
+	fieldArr := strings.Split(snp, ".")
+	// fmt.Println(fieldArr)
+
+	val := reflect.ValueOf(data)
+
+	for i := 0; i < val.Type().NumField(); i++ {
+		t := val.Type().Field(i)
+
+		fieldName := t.Name
+		// fmt.Println(fieldArr[1])
+		if fieldArr[1] == fieldName {
+			if jsonTag := t.Tag.Get("json"); jsonTag != "" && jsonTag != "-" {
+				// check for possible comma as in "...,omitempty"
+				var commaIdx int
+				if commaIdx = strings.Index(jsonTag, ","); commaIdx < 0 {
+					commaIdx = len(jsonTag)
+				}
+				fieldName = jsonTag[:commaIdx]
+			}
+			return errors.New(fieldName)
+		}
+
+		return nil
+	}
+
+	return nil
+}
+
+func ValidateStruct(data interface{}) []*ErrorResponse {
 	validate = validator.New()
 
 	en := en.New()
@@ -42,15 +77,19 @@ func ValidateStruct(data interface{}) []*ErrorResponse {
 		for _, err := range err.(validator.ValidationErrors) {
 			var element ErrorResponse
 			translatedErr := fmt.Errorf(err.Translate(trans))
-			element.FailedField = err.StructNamespace()
-			// element.FailedField = err.Field()
+			element.Field = err.StructNamespace()
 			// log.Println(err.StructNamespace())
 			element.Tag = err.Tag()
 			// element.Value = err.Param()
-			element.Value = translatedErr.Error()
+			element.Message = translatedErr.Error()
+
+			errJson := getJSONField(data, err.StructNamespace(), err.Field())
+			if errJson != nil {
+				element.Field = errJson.Error()
+			}
 
 			if err.Tag() == "e164" {
-				element.Value = fmt.Sprintf("%s %s", translatedErr.Error(), "i.e. +6281234567890 or +628 123 4567 890")
+				element.Message = fmt.Sprintf("%s %s", translatedErr.Error(), "i.e. +6281234567890 or +628 123 4567 890")
 			}
 			errors = append(errors, &element)
 		}
@@ -87,14 +126,13 @@ func ValidatePhoneNumber(phone_number string) []*ErrorResponse {
 		for _, err := range err.(validator.ValidationErrors) {
 			var element ErrorResponse
 			translatedErr := fmt.Errorf(err.Translate(trans))
-			element.FailedField = err.StructNamespace()
-			// element.FailedField = strings.ToLower(err.StructField())
+			element.Field = err.StructNamespace()
 			// log.Println(err.StructNamespace())
 			element.Tag = err.Tag()
 			// element.Value = err.Param()
-			element.Value = translatedErr.Error()
+			element.Message = translatedErr.Error()
 			if err.Tag() == "e164" {
-				element.Value = fmt.Sprintf("%s %s", translatedErr.Error(), "i.e. +6281234567890 or +628 123 4567 890")
+				element.Message = fmt.Sprintf("%s %s", translatedErr.Error(), "i.e. +6281234567890 or +628 123 4567 890")
 			}
 			errors = append(errors, &element)
 		}

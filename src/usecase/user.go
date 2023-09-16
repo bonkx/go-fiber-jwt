@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"myapp/src/models"
 )
 
@@ -45,9 +46,24 @@ func (uc *UserUsecase) RefreshToken(ctx context.Context, payload models.RefreshT
 
 // Login implements models.UserUsecase.
 func (uc *UserUsecase) Login(ctx context.Context, payload models.LoginInput) (models.Token, error) {
-	data, err := uc.userRepo.Login(ctx, payload)
+	// check email or username exists
+	user, err := uc.userRepo.FindUserByIdentity(ctx, payload.Email)
 	if err != nil {
-		return data, err
+		return models.Token{}, err
+	}
+
+	if !user.Verified {
+		return models.Token{}, errors.New("Your account is not yet active, please verify your email.")
+	}
+
+	if err := user.ValidatePassword(payload.Password); err != nil {
+		// return models.Token{}, errors.New("Invalid Email or Password.")
+		return models.Token{}, err
+	}
+
+	data, err := uc.userRepo.Login(ctx, user)
+	if err != nil {
+		return models.Token{}, err
 	}
 	return data, nil
 }

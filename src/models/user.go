@@ -19,7 +19,7 @@ type User struct {
 	Username         string     `json:"username" gorm:"not null;unique"`
 	Email            string     `json:"email" binding:"required" gorm:"unique"`
 	Password         string     `json:"-" binding:"required"`
-	Verified         bool       `gorm:"not null;default:false"`
+	Verified         bool       `json:"verified" gorm:"not null;default:false"`
 	IsSuperuser      bool       `json:"is_superuser" gorm:"default:false"`
 	IsStaff          bool       `json:"is_staff" gorm:"default:false"`
 	LastLogin        *time.Time `json:"last_login"`
@@ -29,7 +29,7 @@ type User struct {
 	UserProfile UserProfile `gorm:"foreignkey:UserID"`
 }
 
-func (user *User) BeforeSave(*gorm.DB) error {
+func (user *User) BeforeCreate(*gorm.DB) error {
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -38,14 +38,15 @@ func (user *User) BeforeSave(*gorm.DB) error {
 	user.Username = html.EscapeString(strings.TrimSpace(user.Username))
 	user.Email = strings.ToLower(user.Email)
 
-	// if user.Username == "admin" {
-	// 	*user.Verified = true
-	// 	*user.IsSuperuser = true
-	// 	*user.IsStaff = true
-	// 	*user.VerifiedAt = time.Now()
-	// 	user.UserProfile.Role = "admin"
-	// }
 	return nil
+}
+
+func (user *User) AfterCreate(tx *gorm.DB) (err error) {
+	if user.Username == "admin" {
+		tx.Model(user).Updates(User{IsSuperuser: true, IsStaff: true})
+		tx.Model(user.UserProfile).Update("role", "admin")
+	}
+	return
 }
 
 func (user *User) ValidatePassword(password string) error {
@@ -66,7 +67,7 @@ type UserUsecase interface {
 
 type UserRepository interface {
 	Register(ctx context.Context, md User) (User, error)
-	Login(ctx context.Context, payload LoginInput) (Token, error)
+	Login(ctx context.Context, md User) (Token, error)
 	RefreshToken(ctx context.Context, payload RefreshTokenInput) (Token, error)
 	VerificationEmail(ctx context.Context, code string) error
 	ResendVerificationCode(md User) error

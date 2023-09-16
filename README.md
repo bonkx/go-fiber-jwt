@@ -10,13 +10,17 @@ With pattern Handler, Usecase, Repository
 
 - [x] Fiber Log file, Favicon
 - [x] Fiber Monitor (metrics)
-- [ ] Auth (Register, Login)
+- [x] Golang Architecture Pattern
+  - [x] Handler (delivery/controller)
+  - [x] Usecase (bridge - logic process)
+  - [x] Repository (process to DB)
+- [ ] Auth
   - [x] Register, Send verification Email
   - [x] Send Email with Goroutines
   - [x] Open Link Verification Email 
   - [x] Resend Verification Email Code
-  - [ ] Login
-  - [ ] JWT Auth
+  - [x] Login
+  - [x] JWT Auth Middleware
   - [ ] Refresh Token
   - [ ] Logout
 - [ ] CRUD
@@ -29,10 +33,6 @@ With pattern Handler, Usecase, Repository
   - [ ] Delete Data
 - [ ] Preload Model (Associations in Go/Serializer in Django)
 - [ ] Protected API (Auth Token)
-- [ ] Routes
-  - [ ] Delivery (handler/controller)
-  - [ ] Usecase (bridge - logic process)
-  - [ ] Repository (process to DB)
 - [ ] Open API with API KEY middleware
 - [ ] Upload Files
 - [ ] Upload Videos
