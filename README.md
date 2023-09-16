@@ -13,7 +13,8 @@ With pattern Handler, Usecase, Repository
 - [ ] Auth (Register, Login)
   - [x] Register, Send verification Email
   - [x] Send Email with Goroutines
-  - [ ] Verification Email Code
+  - [x] Open Link Verification Email 
+  - [x] Resend Verification Email Code
   - [ ] Login
   - [ ] JWT Auth
   - [ ] Refresh Token
