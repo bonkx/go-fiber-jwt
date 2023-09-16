@@ -21,6 +21,7 @@ func NewAuthHandler(r fiber.Router, userUsecase models.UserUsecase) {
 	// ROUTES
 	auth := r.Group("/auth")
 	auth.Post("/register", handler.Register)
+	auth.Post("/request-verify-code", handler.RequestVerifyCode)
 	auth.Post("/login", handler.Login)
 	auth.Post("/refresh", handler.RefreshAccessToken)
 
@@ -149,6 +150,42 @@ func (h *AuthHandler) RefreshAccessToken(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(token)
+}
+
+func (h *AuthHandler) RequestVerifyCode(c *fiber.Ctx) error {
+	payload := struct {
+		Email string `json:"email" validate:"required,email"`
+	}{}
+
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	// form POST validations
+	errors := models.ValidateStruct(payload)
+	if errors != nil {
+		errD := models.ErrorDetailsResponse{
+			Code:    fiber.ErrUnprocessableEntity.Code,
+			Message: fiber.ErrUnprocessableEntity.Message,
+			Errors:  errors,
+		}
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(errD)
+	}
+
+	err := h.userUsecase.ResendVerificationCode(c.Context(), payload.Email)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	message := "We sent an email with a verification link to " + payload.Email
+
+	return c.Status(200).JSON(fiber.Map{
+		"message": message,
+	})
 }
 
 // func LogoutUser(c *fiber.Ctx) error {

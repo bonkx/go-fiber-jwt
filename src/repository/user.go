@@ -18,6 +18,47 @@ type UserRepository struct {
 	DB *gorm.DB
 }
 
+// ResendVerificationCode implements models.UserRepository.
+func (r *UserRepository) ResendVerificationCode(user models.User) error {
+	if user.Verified {
+		return errors.New("User already verified. You can login now.")
+	}
+
+	// Generate Verification Code
+	code := randstr.String(50)
+
+	verification_code := helpers.Encode(code)
+
+	// Update User in Database
+	user.VerificationCode = verification_code
+	r.DB.Save(&user)
+
+	var accountName = user.FirstName
+
+	if accountName != "" {
+		if strings.Contains(accountName, " ") {
+			accountName = strings.Split(accountName, " ")[1]
+		}
+	} else {
+		accountName = user.Email
+	}
+
+	siteData, _ := configs.GetSiteData(".")
+	// Send Email if register successfully
+	emailData := helpers.EmailData{
+		URL:          siteData.ClientOrigin + "/verify-email/" + code,
+		FirstName:    accountName,
+		Subject:      "Your account verification",
+		TypeOfAction: "Register",
+		SiteData:     siteData,
+	}
+
+	// send email with goroutine
+	go helpers.SendEmail(user, &emailData, "verificationCode.html")
+
+	return nil
+}
+
 // VerificationEmail implements models.UserRepository.
 func (r *UserRepository) VerificationEmail(ctx context.Context, code string) error {
 	verification_code := helpers.Encode(code)
@@ -124,13 +165,33 @@ func (r *UserRepository) FindUserById(ctx context.Context, id uint) (models.User
 	return user, nil
 }
 
-// FindUserByUsername implements models.UserRepository.
-func (r *UserRepository) FindUserByUsername(ctx context.Context, username string) (models.User, error) {
+// FindUserByEmail implements models.UserRepository.
+func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (models.User, error) {
 	var user models.User
-	err := r.DB.Where("username=?", strings.ToLower(username)).Or("email=?", strings.ToLower(username)).Find(&user).Error
-	if err != nil {
-		return user, err
+	result := r.DB.Where("email=?", strings.ToLower(email)).Find(&user)
+	if result.Error != nil {
+		return user, errors.New(result.Error.Error())
 	}
+
+	if result.RowsAffected == 0 {
+		return user, errors.New("Invalid email or account doesn't exists.")
+	}
+
+	return user, nil
+}
+
+// FindUserByIdentity implements models.UserRepository.
+func (r *UserRepository) FindUserByIdentity(ctx context.Context, identity string) (models.User, error) {
+	var user models.User
+	result := r.DB.Where("username=?", strings.ToLower(identity)).Or("email=?", strings.ToLower(identity)).Find(&user)
+	if result.Error != nil {
+		return user, errors.New(result.Error.Error())
+	}
+
+	if result.RowsAffected == 0 {
+		return user, errors.New("Account doesn't exists.")
+	}
+
 	return user, nil
 }
 
@@ -138,7 +199,7 @@ func (r *UserRepository) FindUserByUsername(ctx context.Context, username string
 func (r *UserRepository) Login(ctx context.Context, payload models.LoginInput) (models.Token, error) {
 	var token models.Token
 
-	user, err := r.FindUserByUsername(ctx, payload.Username)
+	user, err := r.FindUserByIdentity(ctx, payload.Username)
 	if err != nil {
 		fmt.Println(err)
 		return token, err

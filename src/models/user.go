@@ -57,12 +57,11 @@ type UserUsecase interface {
 	Login(ctx context.Context, payload LoginInput) (Token, error)
 	RefreshToken(ctx context.Context, payload RefreshTokenInput) (Token, error)
 	VerificationEmail(ctx context.Context, code string) error
+	ResendVerificationCode(ctx context.Context, email string) error
 
 	// Create(ctx context.Context, md User) error
 	// Update(ctx context.Context, md User) error
 	// Delete(ctx context.Context, md User) error
-	// FindUserByUsername(ctx context.Context, username string) (User, error)
-	// FindUserById(ctx context.Context, id uint) (User, error)
 }
 
 type UserRepository interface {
@@ -70,12 +69,14 @@ type UserRepository interface {
 	Login(ctx context.Context, payload LoginInput) (Token, error)
 	RefreshToken(ctx context.Context, payload RefreshTokenInput) (Token, error)
 	VerificationEmail(ctx context.Context, code string) error
+	ResendVerificationCode(md User) error
 
 	EmailExists(email string) error
 	UsernameExists(username string) error
 	Create(ctx context.Context, md User) error
 	// Update(ctx context.Context, md User) error
 	// Delete(ctx context.Context, md User) error
-	FindUserByUsername(ctx context.Context, username string) (User, error)
+	FindUserByIdentity(ctx context.Context, identity string) (User, error)
+	FindUserByEmail(ctx context.Context, email string) (User, error)
 	FindUserById(ctx context.Context, id uint) (User, error)
 }

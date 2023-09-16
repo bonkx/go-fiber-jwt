@@ -9,6 +9,22 @@ type UserUsecase struct {
 	userRepo models.UserRepository
 }
 
+// ResendVerificationCode implements models.UserUsecase.
+func (uc *UserUsecase) ResendVerificationCode(c context.Context, email string) error {
+	// get user based on email param
+	user, err := uc.userRepo.FindUserByEmail(c, email)
+	if err != nil {
+		return err
+	}
+
+	err = uc.userRepo.ResendVerificationCode(user)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // VerificationEmail implements models.UserUsecase.
 func (uc *UserUsecase) VerificationEmail(ctx context.Context, code string) error {
 	err := uc.userRepo.VerificationEmail(ctx, code)
