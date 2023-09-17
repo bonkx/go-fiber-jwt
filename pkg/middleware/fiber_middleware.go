@@ -56,6 +56,8 @@ func FiberMiddleware(a *fiber.App) {
 		Compress: true,
 	})
 	// Serve media files from the "media" directory
-	// a.Static("/media", "./media")
+	a.Static("/media", "./media", fiber.Static{
+		Compress: true,
+	})
 
 }

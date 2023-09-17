@@ -12,9 +12,9 @@ type EmailHandler struct {
 	userUsecase models.UserUsecase
 }
 
-func NewEmailHandler(r *fiber.App, userUsecase models.UserUsecase) {
+func NewEmailHandler(r *fiber.App, uc models.UserUsecase) {
 	handler := &EmailHandler{
-		userUsecase: userUsecase,
+		userUsecase: uc,
 	}
 
 	r.Get("/verify-email/:verificationCode", handler.VerifyEmail)

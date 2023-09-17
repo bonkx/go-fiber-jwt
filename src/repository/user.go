@@ -21,6 +21,23 @@ type UserRepository struct {
 	DB *gorm.DB
 }
 
+// NewUserRepository will create an object that represent the models.UserRepository interface
+func NewUserRepository(Conn *gorm.DB) models.UserRepository {
+	return &UserRepository{Conn}
+}
+
+// Update implements models.UserRepository.
+func (r *UserRepository) Update(user models.User) (models.User, *fiber.Error) {
+
+	// update user and profile data as well
+	err := r.DB.Session(&gorm.Session{FullSaveAssociations: true}).Save(&user).Error
+	if err != nil {
+		return user, fiber.NewError(500, err.Error())
+	}
+
+	return user, nil
+}
+
 // ChangePassword implements models.UserRepository.
 func (r *UserRepository) ChangePassword(user models.User) *fiber.Error {
 	err := r.DB.Save(&user).Error
@@ -407,9 +424,4 @@ func (r *UserRepository) Register(user models.User) (models.User, *fiber.Error) 
 	r.SendVerificationEmail(user, code)
 
 	return user, nil
-}
-
-// NewMysqlArticleRepository will create an object that represent the article.Repository interface
-func NewUserRepository(Conn *gorm.DB) models.UserRepository {
-	return &UserRepository{Conn}
 }

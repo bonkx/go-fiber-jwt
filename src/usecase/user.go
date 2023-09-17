@@ -13,6 +13,47 @@ type UserUsecase struct {
 	userRepo models.UserRepository
 }
 
+// NewUserUsecase will create an object that represent the models.UserUsecase interface
+func NewUserUsecase(userRepo models.UserRepository) models.UserUsecase {
+	return &UserUsecase{
+		userRepo: userRepo,
+	}
+}
+
+// Update implements models.UserUsecase.
+func (uc *UserUsecase) Update(c *fiber.Ctx, payload models.UpdateProfileInput) (models.User, *fiber.Error) {
+	user := models.User{}
+	userLocal, errLocal := c.Locals("user").(models.User)
+	if !errLocal {
+		return user, fiber.NewError(500, "Unable to extract user from request context for unknown reason")
+	}
+
+	// get latest user data
+	user, err := uc.userRepo.FindUserById(userLocal.ID)
+	if err != nil {
+		return user, err
+	}
+
+	dateBirthday, errFormat := time.Parse(time.DateOnly, payload.Birthday)
+	if errFormat != nil {
+		return user, fiber.NewError(500, errFormat.Error())
+	}
+
+	// fill user updates
+	user.FirstName = payload.FirstName
+	user.LastName = payload.LastName
+	user.UserProfile.Phone = payload.Phone
+	user.UserProfile.Birthday = &dateBirthday
+
+	// do update user
+	user, err = uc.userRepo.Update(user)
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
 // ChangePassword implements models.UserUsecase.
 func (uc *UserUsecase) ChangePassword(ctx context.Context, user models.User, payload models.ChangePasswordInput) *fiber.Error {
 	passwordHash, errHash := user.HashPassword(payload.Password)
@@ -198,11 +239,4 @@ func (uc *UserUsecase) Register(ctx context.Context, payload models.RegisterInpu
 		return user, err
 	}
 	return user, nil
-}
-
-// NewAuthEntity will create new an articleUsecase object representation of domain.ArticleUsecase interface
-func NewUserUsecase(userRepo models.UserRepository) models.UserUsecase {
-	return &UserUsecase{
-		userRepo: userRepo,
-	}
 }

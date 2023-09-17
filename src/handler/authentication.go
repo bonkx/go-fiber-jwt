@@ -14,9 +14,9 @@ type AuthHandler struct {
 	userUsecase models.UserUsecase
 }
 
-func NewAuthHandler(r fiber.Router, userUsecase models.UserUsecase) {
+func NewAuthHandler(r fiber.Router, uc models.UserUsecase) {
 	handler := &AuthHandler{
-		userUsecase: userUsecase,
+		userUsecase: uc,
 	}
 
 	// ROUTES

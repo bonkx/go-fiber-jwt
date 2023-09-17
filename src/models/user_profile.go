@@ -10,7 +10,7 @@ type UserProfile struct {
 	gorm.Model
 	UserID            uint
 	StatusID          uint
-	Phone             string     `json:"phone" binding:"required" gorm:"size:20;"`
+	Phone             string     `json:"phone" gorm:"size:20;"`
 	Photo             string     `json:"photo"`
 	Role              string     `json:"role" gorm:"size:100;"`
 	LastLoginIp       string     `json:"last_login_ip"`

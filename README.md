@@ -29,7 +29,7 @@ With pattern Handler, Usecase, Repository
   - [x] Logout
 - [ ] Account
   - [x] Get Profile
-  - [ ] Update Profile
+  - [x] Update Profile
   - [ ] Upload Photo Profile
   - [x] Change Password
   - [ ] Deletion Account

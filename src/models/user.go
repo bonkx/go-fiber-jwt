@@ -16,11 +16,11 @@ import (
 // User struct is used to store user information in the database
 type User struct {
 	gorm.Model
-	FirstName        string     `json:"first_name" binding:"required"`
-	LastName         string     `json:"last_name" binding:"required"`
+	FirstName        string     `json:"first_name"`
+	LastName         string     `json:"last_name"`
 	Username         string     `json:"username" gorm:"not null;unique"`
-	Email            string     `json:"email" binding:"required" gorm:"unique"`
-	Password         string     `json:"-" binding:"required"`
+	Email            string     `json:"email" gorm:"unique"`
+	Password         string     `json:"-"`
 	Verified         bool       `json:"verified" gorm:"not null;default:false"`
 	IsSuperuser      bool       `json:"is_superuser" gorm:"default:false"`
 	IsStaff          bool       `json:"is_staff" gorm:"default:false"`
@@ -48,6 +48,7 @@ func (user *User) AfterCreate(tx *gorm.DB) (err error) {
 		tx.Model(user).Updates(User{IsSuperuser: true, IsStaff: true})
 		tx.Model(user.UserProfile).Update("role", "admin")
 	}
+	tx.Model(user.UserProfile).Update("role", "user")
 	return
 }
 
@@ -75,8 +76,8 @@ type UserUsecase interface {
 	ForgotPasswordOTP(ctx context.Context, payload OTPInput) (string, *fiber.Error)
 	ResetPassword(ctx context.Context, payload ResetPasswordInput) *fiber.Error
 	ChangePassword(ctx context.Context, md User, payload ChangePasswordInput) *fiber.Error
-	// Update(ctx context.Context, md User) error
-	// Delete(ctx context.Context, md User) error
+	Update(c *fiber.Ctx, payload UpdateProfileInput) (User, *fiber.Error)
+	// Delete(ctx context.Context, md User) *fiber.Error
 }
 
 type UserRepository interface {
@@ -97,12 +98,11 @@ type UserRepository interface {
 	VerifyOTP(md OTPRequest) (string, *fiber.Error)
 	ResetPassword(md User) *fiber.Error
 	ChangePassword(md User) *fiber.Error
-	// DeleteAllOTPRequestByEmail(email string) *fiber.Error
 
 	EmailExists(email string) *fiber.Error
 	UsernameExists(username string) *fiber.Error
 	Create(md User) *fiber.Error
-	// Update( md User) *fiber.Error
+	Update(md User) (User, *fiber.Error)
 	// Delete( md User) *fiber.Error
 	FindUserByIdentity(identity string) (User, *fiber.Error)
 	FindUserByEmail(email string) (User, *fiber.Error)
