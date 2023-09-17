@@ -14,6 +14,7 @@ With pattern Handler, Usecase, Repository
   - [x] Handler (delivery/controller)
   - [x] Usecase (bridge - logic process)
   - [x] Repository (process to DB)
+  - [x] Error Handling with *fiber.Error
 - [ ] Auth
   - [x] Register, Send verification Email
   - [x] Send Email with Goroutines
@@ -25,7 +26,7 @@ With pattern Handler, Usecase, Repository
   - [ ] Forgot Password
   - [ ] Forgot Password Verify OTP
   - [ ] Change Password
-  - [ ] Logout
+  - [x] Logout
 - [ ] CRUD
   - [ ] Pagination with custom Paginate [pagination-using-gorm-scopes](https://dev.to/rafaelgfirmino/pagination-using-gorm-scopes-3k5f)
   - [ ] Redis List Pagination

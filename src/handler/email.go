@@ -29,9 +29,8 @@ func (h *EmailHandler) VerifyEmail(c *fiber.Ctx) error {
 	code := c.Params("verificationCode")
 
 	if err := h.userUsecase.VerificationEmail(c.Context(), code); err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		errD := fiber.NewError(err.Code, err.Message)
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	siteData, _ := configs.GetSiteData(".")

@@ -32,15 +32,15 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	var payload models.RegisterInput
 
 	if err := c.BodyParser(&payload); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(
+			fiber.NewError(fiber.StatusBadRequest, err.Error()),
+		)
 	}
 
 	if payload.Password != payload.PasswordConfirm {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Passwords do not match!",
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(
+			fiber.NewError(400, "Passwords do not match!"),
+		)
 	}
 
 	// form POST validation
@@ -51,7 +51,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 			Message: fiber.ErrUnprocessableEntity.Message,
 			Errors:  errors,
 		}
-		return c.Status(fiber.StatusUnprocessableEntity).JSON(errD)
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	if payload.Phone != "" {
@@ -71,14 +71,12 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 
 	savedUser, err := h.userUsecase.Register(c.Context(), payload)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(err.Code).JSON(err)
 	}
 
 	message := "We sent an email with a verification link to " + savedUser.Email
-
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"code":    fiber.StatusCreated,
 		"user":    savedUser,
 		"message": message,
 	})
@@ -88,9 +86,9 @@ func (h *AuthHandler) RequestVerifyCode(c *fiber.Ctx) error {
 	var payload models.RequestVerifyCodeInput
 
 	if err := c.BodyParser(&payload); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(
+			fiber.NewError(fiber.StatusBadRequest, err.Error()),
+		)
 	}
 
 	// form POST validations
@@ -101,19 +99,17 @@ func (h *AuthHandler) RequestVerifyCode(c *fiber.Ctx) error {
 			Message: fiber.ErrUnprocessableEntity.Message,
 			Errors:  errors,
 		}
-		return c.Status(fiber.StatusUnprocessableEntity).JSON(errD)
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	err := h.userUsecase.ResendVerificationCode(c.Context(), payload.Email)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(err.Code).JSON(err)
 	}
 
 	message := "We sent an email with a verification link to " + payload.Email
-
-	return c.Status(200).JSON(fiber.Map{
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"code":    fiber.StatusOK,
 		"message": message,
 	})
 }
@@ -122,9 +118,9 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	var payload models.LoginInput
 
 	if err := c.BodyParser(&payload); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(
+			fiber.NewError(fiber.StatusBadRequest, err.Error()),
+		)
 	}
 
 	// form POST validation
@@ -135,14 +131,12 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 			Message: fiber.ErrUnprocessableEntity.Message,
 			Errors:  errors,
 		}
-		return c.Status(fiber.StatusUnprocessableEntity).JSON(errD)
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	token, err := h.userUsecase.Login(c.Context(), payload)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(err.Code).JSON(err)
 	}
 
 	// config, _ := configs.LoadConfig(".")
@@ -159,9 +153,9 @@ func (h *AuthHandler) RefreshAccessToken(c *fiber.Ctx) error {
 	var payload models.RefreshTokenInput
 
 	if err := c.BodyParser(&payload); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(
+			fiber.NewError(fiber.StatusBadRequest, err.Error()),
+		)
 	}
 
 	// form POST validations
@@ -172,14 +166,12 @@ func (h *AuthHandler) RefreshAccessToken(c *fiber.Ctx) error {
 			Message: fiber.ErrUnprocessableEntity.Message,
 			Errors:  errors,
 		}
-		return c.Status(fiber.StatusUnprocessableEntity).JSON(errD)
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	token, err := h.userUsecase.RefreshToken(c.Context(), payload)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(err.Code).JSON(err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(token)
@@ -188,16 +180,17 @@ func (h *AuthHandler) RefreshAccessToken(c *fiber.Ctx) error {
 func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 	token, err := helpers.ExtractTokenMetadata(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(fiber.StatusUnauthorized).JSON(
+			fiber.NewError(fiber.StatusUnauthorized, err.Error()),
+		)
 	}
 
 	if err := h.userUsecase.Logout(token); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(err.Code).JSON(err)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Logout success"})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"code":    fiber.StatusOK,
+		"message": "Logout success",
+	})
 }

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -55,12 +56,12 @@ func (user *User) ValidatePassword(password string) error {
 }
 
 type UserUsecase interface {
-	Register(ctx context.Context, payload RegisterInput) (User, error)
-	Login(ctx context.Context, payload LoginInput) (Token, error)
-	RefreshToken(ctx context.Context, payload RefreshTokenInput) (Token, error)
-	VerificationEmail(ctx context.Context, code string) error
-	ResendVerificationCode(ctx context.Context, email string) error
-	Logout(authD *AccessDetails) error
+	Register(ctx context.Context, payload RegisterInput) (User, *fiber.Error)
+	Login(ctx context.Context, payload LoginInput) (Token, *fiber.Error)
+	RefreshToken(ctx context.Context, payload RefreshTokenInput) (Token, *fiber.Error)
+	VerificationEmail(ctx context.Context, code string) *fiber.Error
+	ResendVerificationCode(ctx context.Context, email string) *fiber.Error
+	Logout(authD *AccessDetails) *fiber.Error
 
 	// Create(ctx context.Context, md User) error
 	// Update(ctx context.Context, md User) error
@@ -68,22 +69,24 @@ type UserUsecase interface {
 }
 
 type UserRepository interface {
-	Register(ctx context.Context, md User) (User, error)
-	Login(ctx context.Context, md User) (Token, error)
-	RefreshToken(ctx context.Context, payload RefreshTokenInput) (Token, error)
-	GeneratePairToken(userID uint) (Token, error)
-	DeleteToken(authD *AccessDetails) error
+	// funtions
 	DeleteAuthRedis(givenUuid string) (int64, error)
-	VerificationEmail(ctx context.Context, code string) error
+	GeneratePairToken(userID uint) (Token, error)
 	SendVerificationEmail(md User, code string) error
-	ResendVerificationCode(md User) error
 
-	EmailExists(email string) error
-	UsernameExists(username string) error
-	Create(ctx context.Context, md User) error
-	// Update(ctx context.Context, md User) error
-	// Delete(ctx context.Context, md User) error
-	FindUserByIdentity(ctx context.Context, identity string) (User, error)
-	FindUserByEmail(ctx context.Context, email string) (User, error)
-	FindUserById(ctx context.Context, id uint) (User, error)
+	Register(ctx context.Context, md User) (User, *fiber.Error)
+	Login(ctx context.Context, md User) (Token, *fiber.Error)
+	RefreshToken(ctx context.Context, payload RefreshTokenInput) (Token, *fiber.Error)
+	DeleteToken(authD *AccessDetails) *fiber.Error
+	VerificationEmail(ctx context.Context, code string) *fiber.Error
+	ResendVerificationCode(md User) *fiber.Error
+
+	EmailExists(email string) *fiber.Error
+	UsernameExists(username string) *fiber.Error
+	Create(ctx context.Context, md User) *fiber.Error
+	// Update(ctx context.Context, md User) *fiber.Error
+	// Delete(ctx context.Context, md User) *fiber.Error
+	FindUserByIdentity(ctx context.Context, identity string) (User, *fiber.Error)
+	FindUserByEmail(ctx context.Context, email string) (User, *fiber.Error)
+	FindUserById(ctx context.Context, id uint) (User, *fiber.Error)
 }

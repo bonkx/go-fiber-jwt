@@ -26,9 +26,8 @@ func (h *AccountHandler) GetMe(c *fiber.Ctx) error {
 	// A *model.User will eventually be added to context in middleware
 	user, err := c.Locals("user").(models.User)
 	if !err {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Unable to extract user from request context for unknown reason",
-		})
+		errD := fiber.NewError(500, "Unable to extract user from request context for unknown reason")
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(user)

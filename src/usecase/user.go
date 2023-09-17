@@ -2,8 +2,9 @@ package usecase
 
 import (
 	"context"
-	"errors"
 	"myapp/src/models"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type UserUsecase struct {
@@ -11,7 +12,7 @@ type UserUsecase struct {
 }
 
 // Logout implements models.UserUsecase.
-func (uc *UserUsecase) Logout(authD *models.AccessDetails) error {
+func (uc *UserUsecase) Logout(authD *models.AccessDetails) *fiber.Error {
 	if err := uc.userRepo.DeleteToken(authD); err != nil {
 		return err
 	}
@@ -19,7 +20,7 @@ func (uc *UserUsecase) Logout(authD *models.AccessDetails) error {
 }
 
 // ResendVerificationCode implements models.UserUsecase.
-func (uc *UserUsecase) ResendVerificationCode(ctx context.Context, email string) error {
+func (uc *UserUsecase) ResendVerificationCode(ctx context.Context, email string) *fiber.Error {
 	// get user based on email param
 	user, err := uc.userRepo.FindUserByEmail(ctx, email)
 	if err != nil {
@@ -35,7 +36,7 @@ func (uc *UserUsecase) ResendVerificationCode(ctx context.Context, email string)
 }
 
 // VerificationEmail implements models.UserUsecase.
-func (uc *UserUsecase) VerificationEmail(ctx context.Context, code string) error {
+func (uc *UserUsecase) VerificationEmail(ctx context.Context, code string) *fiber.Error {
 	err := uc.userRepo.VerificationEmail(ctx, code)
 	if err != nil {
 		return err
@@ -44,7 +45,7 @@ func (uc *UserUsecase) VerificationEmail(ctx context.Context, code string) error
 }
 
 // RefreshToken implements models.UserUsecase.
-func (uc *UserUsecase) RefreshToken(ctx context.Context, payload models.RefreshTokenInput) (models.Token, error) {
+func (uc *UserUsecase) RefreshToken(ctx context.Context, payload models.RefreshTokenInput) (models.Token, *fiber.Error) {
 	data, err := uc.userRepo.RefreshToken(ctx, payload)
 	if err != nil {
 		return data, err
@@ -53,7 +54,7 @@ func (uc *UserUsecase) RefreshToken(ctx context.Context, payload models.RefreshT
 }
 
 // Login implements models.UserUsecase.
-func (uc *UserUsecase) Login(ctx context.Context, payload models.LoginInput) (models.Token, error) {
+func (uc *UserUsecase) Login(ctx context.Context, payload models.LoginInput) (models.Token, *fiber.Error) {
 	// check email or username exists
 	user, err := uc.userRepo.FindUserByIdentity(ctx, payload.Email)
 	if err != nil {
@@ -61,12 +62,11 @@ func (uc *UserUsecase) Login(ctx context.Context, payload models.LoginInput) (mo
 	}
 
 	if !user.Verified {
-		return models.Token{}, errors.New("Your account is not active yet, please verify your email.")
+		return models.Token{}, fiber.NewError(400, "Your account is not active yet, please verify your email.")
 	}
 
 	if err := user.ValidatePassword(payload.Password); err != nil {
-		// return models.Token{}, errors.New("Invalid Email or Password.")
-		return models.Token{}, err
+		return models.Token{}, fiber.NewError(400, "Invalid Email or Password.")
 	}
 
 	data, err := uc.userRepo.Login(ctx, user)
@@ -77,7 +77,7 @@ func (uc *UserUsecase) Login(ctx context.Context, payload models.LoginInput) (mo
 }
 
 // Register implements models.UserUsecase.
-func (uc *UserUsecase) Register(ctx context.Context, payload models.RegisterInput) (models.User, error) {
+func (uc *UserUsecase) Register(ctx context.Context, payload models.RegisterInput) (models.User, *fiber.Error) {
 
 	// cek email of user
 	if err := uc.userRepo.EmailExists(payload.Email); err != nil {

@@ -9,9 +9,9 @@ func NotFoundRoute(a *fiber.App) {
 		// Anonymous function.
 		func(c *fiber.Ctx) error {
 			// Return HTTP 404 status and JSON response.
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"message": "sorry, endpoint is not found",
-			})
+			return c.Status(fiber.StatusNotFound).JSON(
+				fiber.NewError(fiber.StatusNotFound, "Sorry, Endpoint is not found"),
+			)
 		},
 	)
 }
