@@ -21,6 +21,16 @@ type UserRepository struct {
 	DB *gorm.DB
 }
 
+// ChangePassword implements models.UserRepository.
+func (r *UserRepository) ChangePassword(user models.User) *fiber.Error {
+	err := r.DB.Save(&user).Error
+	if err != nil {
+		return fiber.NewError(500, err.Error())
+	}
+
+	return nil
+}
+
 func (r *UserRepository) deleteAllOTPRequestByEmail(email string) {
 	fmt.Println("deleteAllOTPRequestByEmail ======================")
 	r.DB.Unscoped().Where("email=?", email).Delete(&models.OTPRequest{})

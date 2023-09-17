@@ -74,6 +74,7 @@ type UserUsecase interface {
 	ForgotPassword(ctx context.Context, payload EmailInput) *fiber.Error
 	ForgotPasswordOTP(ctx context.Context, payload OTPInput) (string, *fiber.Error)
 	ResetPassword(ctx context.Context, payload ResetPasswordInput) *fiber.Error
+	ChangePassword(ctx context.Context, md User, payload ChangePasswordInput) *fiber.Error
 	// Update(ctx context.Context, md User) error
 	// Delete(ctx context.Context, md User) error
 }
@@ -95,6 +96,7 @@ type UserRepository interface {
 	FindReferenceOTPRequest(refNo string) (OTPRequest, *fiber.Error)
 	VerifyOTP(md OTPRequest) (string, *fiber.Error)
 	ResetPassword(md User) *fiber.Error
+	ChangePassword(md User) *fiber.Error
 	// DeleteAllOTPRequestByEmail(email string) *fiber.Error
 
 	EmailExists(email string) *fiber.Error

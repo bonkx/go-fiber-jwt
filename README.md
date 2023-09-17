@@ -15,7 +15,7 @@ With pattern Handler, Usecase, Repository
   - [x] Usecase (bridge - logic process)
   - [x] Repository (process to DB)
   - [x] Error Handling with *fiber.Error
-- [ ] Auth
+- [x] Auth
   - [x] Register, Send verification Email
   - [x] Send Email with Goroutines
   - [x] Open Link Verification Email
@@ -28,10 +28,10 @@ With pattern Handler, Usecase, Repository
   - [x] Reset Password
   - [x] Logout
 - [ ] Account
-  - [ ] Get Profile
+  - [x] Get Profile
   - [ ] Update Profile
   - [ ] Upload Photo Profile
-  - [ ] Change Password
+  - [x] Change Password
   - [ ] Deletion Account
   - [ ] User Activity (last login at, ip address in middleware)
 - [ ] CRUD

@@ -13,3 +13,8 @@ type ResetPasswordInput struct {
 	Password        string `json:"password" validate:"required,gte=4"`
 	PasswordConfirm string `json:"password_confirm"`
 }
+
+type ChangePasswordInput struct {
+	Password        string `json:"password" validate:"required,gte=4"`
+	PasswordConfirm string `json:"password_confirm"`
+}
