@@ -1,4 +1,3 @@
-{{define "email_base"}}
 <!DOCTYPE html>
 <html>
 
@@ -28,11 +27,12 @@
     {{template "header_logo" .}}
     <!-- end logo -->
 
-    {{block "content" .}}{{end}}
 
+    {{ if .TypeOfAction }}
     <!-- start footer -->
     {{template "footer" .}}
     <!-- end footer -->
+    {{end}}
 
   </table>
   <!-- end body -->
@@ -40,4 +40,3 @@
 </body>
 
 </html>
-{{end}}

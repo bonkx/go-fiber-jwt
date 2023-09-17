@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"myapp/pkg/helpers"
 	middleware "myapp/pkg/middleware"
+	"myapp/pkg/utils"
 	"myapp/src/models"
 
 	"github.com/gofiber/fiber/v2"
@@ -24,6 +25,7 @@ func NewAuthHandler(r fiber.Router, userUsecase models.UserUsecase) {
 	auth.Post("/request-verify-code", handler.RequestVerifyCode)
 	auth.Post("/login", handler.Login)
 	auth.Post("/refresh", handler.RefreshAccessToken)
+
 	auth.Post("/logout", middleware.JWTAuthMiddleware(), handler.Logout)
 
 }
@@ -55,7 +57,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	}
 
 	if payload.Phone != "" {
-		phone_number_validated := helpers.FormatPhoneNumber(payload.Phone)
+		phone_number_validated := utils.FormatPhoneNumber(payload.Phone)
 		errors := models.ValidatePhoneNumber(phone_number_validated)
 		if errors != nil {
 			errD := models.ErrorDetailsResponse{
@@ -83,7 +85,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 }
 
 func (h *AuthHandler) RequestVerifyCode(c *fiber.Ctx) error {
-	var payload models.RequestVerifyCodeInput
+	var payload models.EmailInput
 
 	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(

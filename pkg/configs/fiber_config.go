@@ -15,7 +15,7 @@ import (
 // See: https://docs.gofiber.io/api/fiber#config
 func FiberConfig() fiber.Config {
 	// Initialize standard Go html template engine
-	engine := html.New("templates", ".html")
+	engine := html.New("./templates", ".html")
 
 	// Define server settings.
 	readTimeoutSecondsCount, _ := strconv.Atoi(os.Getenv("SERVER_READ_TIMEOUT"))
@@ -26,7 +26,8 @@ func FiberConfig() fiber.Config {
 		JSONEncoder: json.Marshal,
 		JSONDecoder: json.Unmarshal,
 		Views:       engine,
-		BodyLimit:   25 * 1024 * 1024, // the default limit of 4MB
+		// ViewsLayout: "layouts/main",
+		BodyLimit: 10 * 1024 * 1024, // the default limit of 10MB
 		// Override default error handler
 		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
 			// Status code defaults to 500

@@ -21,22 +21,24 @@ func FiberMiddleware(a *fiber.App) {
 		log.Fatalf("error opening file: %v", err)
 	}
 
+	loggerConfig := logger.Config{
+		Output: file,
+		Format: "${time} | ${status} |${latency} | ${ip} | ${method} | ${path}\n",
+		// Format:     "${time} | ${status} |${latency} | ${ip} | ${method} | ${path} | ${resBody}\n",
+		TimeFormat: time.RFC1123,
+		TimeZone:   "Asia/Jakarta",
+	}
+
+	faviconConfig := favicon.Config{
+		File: "./static/favicon.ico",
+	}
+
 	// CORS config
 	// corsConfig := cors.Config{
 	// 	AllowOrigins: "http://localhost:8000",
 	// 	// AllowCredentials: true,
 	// 	AllowHeaders: "Origin, Content-Type, Accept",
 	// }
-
-	loggerConfig := logger.Config{
-		Output:     file,
-		Format:     "[${status}] ${time} ${ip}:${port} - ${method} ${path}\n",
-		TimeFormat: time.RFC1123,
-		TimeZone:   "Asia/Jakarta",
-	}
-	faviconConfig := favicon.Config{
-		File: "./static/favicon.ico",
-	}
 
 	a.Use(
 		// Add CORS to each route.
@@ -50,7 +52,9 @@ func FiberMiddleware(a *fiber.App) {
 	)
 
 	// Serve static files from the "static" directory
-	a.Static("/static", "./static")
+	a.Static("/static", "./static", fiber.Static{
+		Compress: true,
+	})
 	// Serve media files from the "media" directory
 	// a.Static("/media", "./media")
 

@@ -11,6 +11,21 @@ type UserUsecase struct {
 	userRepo models.UserRepository
 }
 
+// ForgotPassword implements models.UserUsecase.
+func (uc *UserUsecase) ForgotPassword(ctx context.Context, payload models.EmailInput) *fiber.Error {
+	// find user based on email
+	user, err := uc.userRepo.FindUserByEmail(payload.Email)
+	if err != nil {
+		return err
+	}
+
+	// do request OTP
+	if err := uc.userRepo.RequestOTPEmail(user); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Logout implements models.UserUsecase.
 func (uc *UserUsecase) Logout(authD *models.AccessDetails) *fiber.Error {
 	if err := uc.userRepo.DeleteToken(authD); err != nil {
@@ -22,7 +37,7 @@ func (uc *UserUsecase) Logout(authD *models.AccessDetails) *fiber.Error {
 // ResendVerificationCode implements models.UserUsecase.
 func (uc *UserUsecase) ResendVerificationCode(ctx context.Context, email string) *fiber.Error {
 	// get user based on email param
-	user, err := uc.userRepo.FindUserByEmail(ctx, email)
+	user, err := uc.userRepo.FindUserByEmail(email)
 	if err != nil {
 		return err
 	}
@@ -37,7 +52,7 @@ func (uc *UserUsecase) ResendVerificationCode(ctx context.Context, email string)
 
 // VerificationEmail implements models.UserUsecase.
 func (uc *UserUsecase) VerificationEmail(ctx context.Context, code string) *fiber.Error {
-	err := uc.userRepo.VerificationEmail(ctx, code)
+	err := uc.userRepo.VerificationEmail(code)
 	if err != nil {
 		return err
 	}
@@ -46,7 +61,7 @@ func (uc *UserUsecase) VerificationEmail(ctx context.Context, code string) *fibe
 
 // RefreshToken implements models.UserUsecase.
 func (uc *UserUsecase) RefreshToken(ctx context.Context, payload models.RefreshTokenInput) (models.Token, *fiber.Error) {
-	data, err := uc.userRepo.RefreshToken(ctx, payload)
+	data, err := uc.userRepo.RefreshToken(payload)
 	if err != nil {
 		return data, err
 	}
@@ -56,7 +71,7 @@ func (uc *UserUsecase) RefreshToken(ctx context.Context, payload models.RefreshT
 // Login implements models.UserUsecase.
 func (uc *UserUsecase) Login(ctx context.Context, payload models.LoginInput) (models.Token, *fiber.Error) {
 	// check email or username exists
-	user, err := uc.userRepo.FindUserByIdentity(ctx, payload.Email)
+	user, err := uc.userRepo.FindUserByIdentity(payload.Email)
 	if err != nil {
 		return models.Token{}, err
 	}
@@ -69,7 +84,7 @@ func (uc *UserUsecase) Login(ctx context.Context, payload models.LoginInput) (mo
 		return models.Token{}, fiber.NewError(400, "Invalid Email or Password.")
 	}
 
-	data, err := uc.userRepo.Login(ctx, user)
+	data, err := uc.userRepo.Login(user)
 	if err != nil {
 		return models.Token{}, err
 	}
@@ -101,7 +116,7 @@ func (uc *UserUsecase) Register(ctx context.Context, payload models.RegisterInpu
 		},
 	}
 
-	user, err := uc.userRepo.Register(ctx, user)
+	user, err := uc.userRepo.Register(user)
 	if err != nil {
 		return user, err
 	}

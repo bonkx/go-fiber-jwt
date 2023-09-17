@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"myapp/pkg/configs"
 	"myapp/pkg/helpers"
+	"myapp/pkg/utils"
 	"myapp/src/models"
 	"strings"
 	"time"
@@ -17,6 +18,31 @@ import (
 
 type UserRepository struct {
 	DB *gorm.DB
+}
+
+// RequestOTPEmail implements models.UserRepository.
+func (r *UserRepository) RequestOTPEmail(user models.User) *fiber.Error {
+	otpR := models.OTPRequest{Email: user.Email}
+
+	// create OTP Request
+	err := r.DB.Create(&otpR).Error
+	if err != nil {
+		return fiber.NewError(500, err.Error())
+	}
+
+	siteData, _ := configs.GetSiteData(".")
+	emailData := helpers.EmailData{
+		URL:          otpR.Otp,
+		FirstName:    user.Email,
+		Subject:      "Your OTP code",
+		TypeOfAction: "Forgot Password",
+		SiteData:     siteData,
+	}
+
+	// send email with goroutine
+	go helpers.SendEmail(user, &emailData, "otp_code.html")
+
+	return nil
 }
 
 // DeleteAuth implements models.UserRepository.
@@ -78,7 +104,7 @@ func (*UserRepository) SendVerificationEmail(user models.User, code string) erro
 	}
 
 	// send email with goroutine
-	go helpers.SendEmail(user, &emailData, "verificationCode")
+	go helpers.SendEmail(user, &emailData, "verification_code.html")
 
 	return nil
 }
@@ -92,7 +118,7 @@ func (r *UserRepository) ResendVerificationCode(user models.User) *fiber.Error {
 	// Generate Verification Code
 	code := randstr.String(64)
 
-	verification_code := helpers.Encode(code)
+	verification_code := utils.Encode(code)
 
 	// Update User in Database
 	user.VerificationCode = verification_code
@@ -105,8 +131,8 @@ func (r *UserRepository) ResendVerificationCode(user models.User) *fiber.Error {
 }
 
 // VerificationEmail implements models.UserRepository.
-func (r *UserRepository) VerificationEmail(ctx context.Context, code string) *fiber.Error {
-	verification_code := helpers.Encode(code)
+func (r *UserRepository) VerificationEmail(code string) *fiber.Error {
+	verification_code := utils.Encode(code)
 
 	var user models.User
 	result := r.DB.First(&user, "verification_code = ?", verification_code)
@@ -160,12 +186,12 @@ func (r *UserRepository) UsernameExists(username string) *fiber.Error {
 }
 
 // Create implements models.UserRepository.
-func (r *UserRepository) Create(ctx context.Context, md models.User) *fiber.Error {
+func (r *UserRepository) Create(md models.User) *fiber.Error {
 	panic("unimplemented")
 }
 
 // FindUserById implements models.UserRepository.
-func (r *UserRepository) FindUserById(ctx context.Context, id uint) (models.User, *fiber.Error) {
+func (r *UserRepository) FindUserById(id uint) (models.User, *fiber.Error) {
 	var user models.User
 	result := r.DB.Preload("UserProfile.Status").Where("ID=?", id).Find(&user)
 	if result.Error != nil {
@@ -179,7 +205,7 @@ func (r *UserRepository) FindUserById(ctx context.Context, id uint) (models.User
 }
 
 // FindUserByEmail implements models.UserRepository.
-func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (models.User, *fiber.Error) {
+func (r *UserRepository) FindUserByEmail(email string) (models.User, *fiber.Error) {
 	var user models.User
 	result := r.DB.Where("email=?", strings.ToLower(email)).Find(&user)
 	if result.Error != nil {
@@ -194,7 +220,7 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (mod
 }
 
 // FindUserByIdentity implements models.UserRepository.
-func (r *UserRepository) FindUserByIdentity(ctx context.Context, identity string) (models.User, *fiber.Error) {
+func (r *UserRepository) FindUserByIdentity(identity string) (models.User, *fiber.Error) {
 	var user models.User
 	result := r.DB.Where("username=?", strings.ToLower(identity)).Or("email=?", strings.ToLower(identity)).Find(&user)
 	if result.Error != nil {
@@ -209,8 +235,8 @@ func (r *UserRepository) FindUserByIdentity(ctx context.Context, identity string
 }
 
 // RefreshToken implements models.UserRepository.
-func (r *UserRepository) RefreshToken(ctx context.Context, payload models.RefreshTokenInput) (models.Token, *fiber.Error) {
-	var token models.Token
+func (r *UserRepository) RefreshToken(payload models.RefreshTokenInput) (models.Token, *fiber.Error) {
+	token := models.Token{}
 	config, _ := configs.LoadConfig(".")
 
 	// validate refrefresh_token
@@ -236,33 +262,35 @@ func (r *UserRepository) RefreshToken(ctx context.Context, payload models.Refres
 	}
 
 	// generate new tokens
-	token, err = r.GeneratePairToken(user.ID)
+	token, err = r.GeneratePairToken(tokenClaims.UserID)
 	if err != nil {
 		return token, fiber.NewError(404, err.Error())
 	}
-	return token, fiber.NewError(404, err.Error())
+
+	return token, nil
 }
 
 // GeneratePairToken implements models.UserRepository.
-func (*UserRepository) GeneratePairToken(userID uint) (models.Token, error) {
-	var token models.Token
+func (r *UserRepository) GeneratePairToken(userID uint) (models.Token, error) {
+	token := models.Token{}
 
 	td, err := helpers.CreateToken(userID)
 	if err != nil {
 		return token, err
 	}
 
-	// Save Token in Redis
 	ctxTodo := context.TODO()
 	now := time.Now()
 
-	fmt.Println("td.AccessUuid : ", td.AccessUuid)
+	// fmt.Println("td.AccessUuid : ", td.AccessUuid)
+	// Save Access Token in Redis
 	errAccess := configs.RedisClient.Set(ctxTodo, td.AccessUuid, userID, time.Unix(td.AtExpires, 0).Sub(now)).Err()
 	if errAccess != nil {
 		return token, errAccess
 	}
 
-	fmt.Println("td.RefreshUuid : ", td.RefreshUuid)
+	// fmt.Println("td.RefreshUuid : ", td.RefreshUuid)
+	// Save Access Refresh in Redis
 	errRefresh := configs.RedisClient.Set(ctxTodo, td.RefreshUuid, userID, time.Unix(td.RtExpires, 0).Sub(now)).Err()
 	if errRefresh != nil {
 		return token, errRefresh
@@ -277,7 +305,7 @@ func (*UserRepository) GeneratePairToken(userID uint) (models.Token, error) {
 }
 
 // Login implements models.UserRepository.
-func (r *UserRepository) Login(ctx context.Context, user models.User) (models.Token, *fiber.Error) {
+func (r *UserRepository) Login(user models.User) (models.Token, *fiber.Error) {
 	token, err := r.GeneratePairToken(user.ID)
 	if err != nil {
 		return token, fiber.NewError(500, err.Error())
@@ -286,11 +314,11 @@ func (r *UserRepository) Login(ctx context.Context, user models.User) (models.To
 }
 
 // Register implements models.UserRepository.
-func (r *UserRepository) Register(ctx context.Context, user models.User) (models.User, *fiber.Error) {
+func (r *UserRepository) Register(user models.User) (models.User, *fiber.Error) {
 	// Generate Verification Code
 	code := randstr.String(64)
 
-	verification_code := helpers.Encode(code)
+	verification_code := utils.Encode(code)
 
 	// fill User verification code
 	user.VerificationCode = verification_code

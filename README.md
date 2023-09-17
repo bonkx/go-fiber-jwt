@@ -23,7 +23,7 @@ With pattern Handler, Usecase, Repository
   - [x] Login
   - [x] JWT Auth Middleware + Redis
   - [x] Refresh Token
-  - [ ] Forgot Password
+  - [ ] Forgot Password, send email OTP
   - [ ] Forgot Password Verify OTP
   - [ ] Change Password
   - [x] Logout

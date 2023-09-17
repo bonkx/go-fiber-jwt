@@ -13,26 +13,6 @@ import (
 
 func JWTAuthMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// access_token := helpers.ExtractToken(c)
-
-		// if access_token == "" {
-		// 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-		// 		"code":    fiber.ErrUnauthorized.Code,
-		// 		"error":   fiber.ErrUnauthorized.Message,
-		// 		"message": "Unauthorized! No credentials provided.",
-		// 	})
-		// }
-
-		// config, _ := configs.LoadConfig(".")
-
-		// tokenClaims, err := helpers.ValidateToken(access_token, config.AccessTokenPublicKey)
-		// if err != nil {
-		// 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-		// 		"code":    fiber.ErrUnauthorized.Code,
-		// 		"error":   fiber.ErrUnauthorized.Message,
-		// 		"message": err.Error(),
-		// 	})
-		// }
 
 		tokenClaims, err := helpers.ExtractTokenMetadata(c)
 		if err != nil {

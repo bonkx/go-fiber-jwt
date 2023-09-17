@@ -63,7 +63,7 @@ type UserUsecase interface {
 	ResendVerificationCode(ctx context.Context, email string) *fiber.Error
 	Logout(authD *AccessDetails) *fiber.Error
 
-	// Create(ctx context.Context, md User) error
+	ForgotPassword(ctx context.Context, payload EmailInput) *fiber.Error
 	// Update(ctx context.Context, md User) error
 	// Delete(ctx context.Context, md User) error
 }
@@ -74,19 +74,20 @@ type UserRepository interface {
 	GeneratePairToken(userID uint) (Token, error)
 	SendVerificationEmail(md User, code string) error
 
-	Register(ctx context.Context, md User) (User, *fiber.Error)
-	Login(ctx context.Context, md User) (Token, *fiber.Error)
-	RefreshToken(ctx context.Context, payload RefreshTokenInput) (Token, *fiber.Error)
+	Register(md User) (User, *fiber.Error)
+	Login(md User) (Token, *fiber.Error)
+	RefreshToken(payload RefreshTokenInput) (Token, *fiber.Error)
 	DeleteToken(authD *AccessDetails) *fiber.Error
-	VerificationEmail(ctx context.Context, code string) *fiber.Error
+	VerificationEmail(code string) *fiber.Error
 	ResendVerificationCode(md User) *fiber.Error
+	RequestOTPEmail(md User) *fiber.Error
 
 	EmailExists(email string) *fiber.Error
 	UsernameExists(username string) *fiber.Error
-	Create(ctx context.Context, md User) *fiber.Error
-	// Update(ctx context.Context, md User) *fiber.Error
-	// Delete(ctx context.Context, md User) *fiber.Error
-	FindUserByIdentity(ctx context.Context, identity string) (User, *fiber.Error)
-	FindUserByEmail(ctx context.Context, email string) (User, *fiber.Error)
-	FindUserById(ctx context.Context, id uint) (User, *fiber.Error)
+	Create(md User) *fiber.Error
+	// Update( md User) *fiber.Error
+	// Delete( md User) *fiber.Error
+	FindUserByIdentity(identity string) (User, *fiber.Error)
+	FindUserByEmail(email string) (User, *fiber.Error)
+	FindUserById(id uint) (User, *fiber.Error)
 }

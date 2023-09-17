@@ -20,8 +20,9 @@ func NewEmailHandler(r *fiber.App, userUsecase models.UserUsecase) {
 	r.Get("/verify-email/:verificationCode", handler.VerifyEmail)
 
 	// test view email
-	r.Get("/view/register-email", handler.registerEmail)
-	r.Get("/view/verify-success", handler.verifySuccess)
+	r.Get("/view/register-email", handler.ViewRegisterEmail)
+	r.Get("/view/verify-success", handler.ViewVerifySuccess)
+	r.Get("/view/otp", handler.ViewOtpEmail)
 
 }
 
@@ -39,10 +40,10 @@ func (h *EmailHandler) VerifyEmail(c *fiber.Ctx) error {
 		SiteData: siteData,
 	}
 
-	return c.Render("emails/verificationDone", emailData)
+	return c.Render("emails/verification_done", emailData)
 }
 
-func (h *EmailHandler) registerEmail(c *fiber.Ctx) error {
+func (h *EmailHandler) ViewRegisterEmail(c *fiber.Ctx) error {
 	siteData, _ := configs.GetSiteData(".")
 
 	emailData := helpers.EmailData{
@@ -53,10 +54,10 @@ func (h *EmailHandler) registerEmail(c *fiber.Ctx) error {
 		SiteData:     siteData,
 	}
 
-	return c.Render("emails/verificationCode", emailData)
+	return c.Render("emails/verification_code", emailData)
 }
 
-func (h *EmailHandler) verifySuccess(c *fiber.Ctx) error {
+func (h *EmailHandler) ViewVerifySuccess(c *fiber.Ctx) error {
 	siteData, _ := configs.GetSiteData(".")
 
 	emailData := helpers.EmailData{
@@ -64,5 +65,19 @@ func (h *EmailHandler) verifySuccess(c *fiber.Ctx) error {
 		SiteData: siteData,
 	}
 
-	return c.Render("emails/verificationDone", emailData)
+	return c.Render("emails/verification_done", emailData)
+}
+
+func (h *EmailHandler) ViewOtpEmail(c *fiber.Ctx) error {
+	siteData, _ := configs.GetSiteData(".")
+
+	emailData := helpers.EmailData{
+		URL:          "123456",
+		FirstName:    "farrid",
+		Subject:      "Your OTP code",
+		TypeOfAction: "Forgot Password",
+		SiteData:     siteData,
+	}
+
+	return c.Render("emails/otp_code", emailData)
 }

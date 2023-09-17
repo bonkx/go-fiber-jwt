@@ -10,6 +10,7 @@ import (
 	"myapp/src/models"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/k3a/html2text"
 	"gopkg.in/gomail.v2"
@@ -70,7 +71,11 @@ func SendEmail(user models.User, emailData *EmailData, emailTemplatename string)
 		log.Fatal("Could not parse template", err)
 	}
 
-	emailTemplate := fmt.Sprintf("%s.html", emailTemplatename)
+	emailTemplate := emailTemplatename
+	isHtml := strings.HasSuffix(emailTemplate, ".html")
+	if !isHtml {
+		emailTemplate = fmt.Sprintf("%s.html", emailTemplate)
+	}
 	template.ExecuteTemplate(&body, emailTemplate, &emailData)
 
 	m := gomail.NewMessage()

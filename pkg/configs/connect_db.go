@@ -17,9 +17,14 @@ func ConnectDB(config *Config) {
 	// Connection URL to connect to Postgres Database
 	dsn := config.DB_DSN
 
+	loggerLevel := logger.Info
+	if !config.IsDebug {
+		loggerLevel = logger.Warn
+	}
+
 	// Connect to the DB and initialize the DB variable
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(loggerLevel),
 	})
 
 	if err != nil {
@@ -32,16 +37,17 @@ func ConnectDB(config *Config) {
 	// DB.Migrator().DropTable(
 	// 	&models.User{},
 	// 	&models.UserProfile{},
-	// 	// &models.Status{},
+	// 	&models.OTPRequest{},
 	// )
 
 	// Migrate the database
-	DB.AutoMigrate(
-	// &models.User{},
-	// &models.UserProfile{},
-	// &models.Product{},
-	// &models.Fact{},
-	)
+	// DB.AutoMigrate(
+	// 	// &models.User{},
+	// 	// &models.UserProfile{},
+	// 	&models.OTPRequest{},
+	// 	// &models.Product{},
+	// 	// &models.Fact{},
+	// )
 
 	fmt.Println("👍 Migration complete")
 
@@ -50,10 +56,10 @@ func ConnectDB(config *Config) {
 	// var status = []models.Status{{Name: "Active"}, {Name: "Inactive"}, {Name: "Pending"}, {Name: "Suspended"}}
 	// DB.Create(&status)
 
-	SetUpDBConnection(DB)
+	setUpDBConnection(DB)
 }
 
-func SetUpDBConnection(db *gorm.DB) {
+func setUpDBConnection(db *gorm.DB) {
 	DB = db
 }
 
