@@ -10,9 +10,10 @@ import (
 
 type OTPRequest struct {
 	gorm.Model
-	Email     string    `json:"email"`
-	Otp       string    `json:"otp"`
-	ExpiredAt time.Time `json:"expired_at"`
+	Email       string    `json:"email"`
+	Otp         string    `json:"otp"`
+	ReferenceNo string    `json:"reference_no"`
+	ExpiredAt   time.Time `json:"expired_at"`
 }
 
 func (m *OTPRequest) BeforeCreate(*gorm.DB) error {

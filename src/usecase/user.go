@@ -2,13 +2,41 @@ package usecase
 
 import (
 	"context"
+	"myapp/pkg/utils"
 	"myapp/src/models"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 type UserUsecase struct {
 	userRepo models.UserRepository
+}
+
+// ForgotPasswordOTP implements models.UserUsecase.
+func (uc *UserUsecase) ForgotPasswordOTP(ctx context.Context, payload models.OTPInput) (string, *fiber.Error) {
+	// find OTP Request
+	otpR, err := uc.userRepo.FindOTPRequest(payload.Otp)
+	if err != nil {
+		return "", err
+	}
+
+	// check otpotpR expired?
+	expired, errEx := utils.Expired(time.Now().UTC(), otpR.ExpiredAt.UTC().Format(time.RFC3339))
+	if errEx != nil {
+		return "", fiber.ErrInternalServerError
+	}
+
+	if expired {
+		return "", fiber.NewError(422, "OTP code has expired")
+	}
+
+	// verify OTP and generate refNo
+	refNo, err := uc.userRepo.VerifyOTP(otpR)
+	if err != nil {
+		return "", err
+	}
+	return refNo, nil
 }
 
 // ForgotPassword implements models.UserUsecase.

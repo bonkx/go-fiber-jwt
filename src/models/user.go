@@ -64,6 +64,7 @@ type UserUsecase interface {
 	Logout(authD *AccessDetails) *fiber.Error
 
 	ForgotPassword(ctx context.Context, payload EmailInput) *fiber.Error
+	ForgotPasswordOTP(ctx context.Context, payload OTPInput) (string, *fiber.Error)
 	// Update(ctx context.Context, md User) error
 	// Delete(ctx context.Context, md User) error
 }
@@ -81,6 +82,9 @@ type UserRepository interface {
 	VerificationEmail(code string) *fiber.Error
 	ResendVerificationCode(md User) *fiber.Error
 	RequestOTPEmail(md User) *fiber.Error
+	FindOTPRequest(otp string) (OTPRequest, *fiber.Error)
+	FindReferenceOTPRequest(refNo string) (OTPRequest, *fiber.Error)
+	VerifyOTP(md OTPRequest) (string, *fiber.Error)
 
 	EmailExists(email string) *fiber.Error
 	UsernameExists(username string) *fiber.Error

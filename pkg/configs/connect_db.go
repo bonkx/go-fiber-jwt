@@ -41,13 +41,13 @@ func ConnectDB(config *Config) {
 	// )
 
 	// Migrate the database
-	// DB.AutoMigrate(
-	// 	// &models.User{},
-	// 	// &models.UserProfile{},
-	// 	&models.OTPRequest{},
-	// 	// &models.Product{},
-	// 	// &models.Fact{},
-	// )
+	DB.AutoMigrate(
+	// &models.User{},
+	// &models.UserProfile{},
+	// &models.OTPRequest{},
+	// &models.Product{},
+	// &models.Fact{},
+	)
 
 	fmt.Println("👍 Migration complete")
 

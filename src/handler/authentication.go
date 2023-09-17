@@ -193,6 +193,6 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"code":    fiber.StatusOK,
-		"message": "Logout success",
+		"message": "Logout successful",
 	})
 }

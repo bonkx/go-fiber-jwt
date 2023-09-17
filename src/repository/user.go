@@ -7,6 +7,7 @@ import (
 	"myapp/pkg/helpers"
 	"myapp/pkg/utils"
 	"myapp/src/models"
+	"strconv"
 	"strings"
 	"time"
 
@@ -18,6 +19,46 @@ import (
 
 type UserRepository struct {
 	DB *gorm.DB
+}
+
+// VerifyOTP implements models.UserRepository.
+func (r *UserRepository) VerifyOTP(otpR models.OTPRequest) (string, *fiber.Error) {
+	// generate random number (20)
+	randomN, err := utils.GenerateRandomNumber(20)
+	if err != nil {
+		return "", fiber.NewError(500, err.Error())
+	}
+
+	refNo := strconv.Itoa(randomN)
+	// update refNo otpR
+	err = r.DB.Model(&otpR).Update("reference_no", refNo).Error
+	if err != nil {
+		return "", fiber.NewError(500, err.Error())
+	}
+
+	return refNo, nil
+}
+
+// FindReferenceOTPRequest implements models.UserRepository.
+func (r *UserRepository) FindReferenceOTPRequest(refNo string) (models.OTPRequest, *fiber.Error) {
+	otpR := models.OTPRequest{}
+
+	result := r.DB.First(&otpR, "reference_no=?", refNo)
+	if result.RowsAffected == 0 {
+		return otpR, fiber.NewError(422, "ReferenceNo doesn't exists.")
+	}
+	return otpR, nil
+}
+
+// FindOTPRequest implements models.UserRepository.
+func (r *UserRepository) FindOTPRequest(otp string) (models.OTPRequest, *fiber.Error) {
+	otpR := models.OTPRequest{}
+
+	result := r.DB.First(&otpR, "otp=?", otp)
+	if result.RowsAffected == 0 {
+		return otpR, fiber.NewError(422, "OTP code doesn't exists.")
+	}
+	return otpR, nil
 }
 
 // RequestOTPEmail implements models.UserRepository.
@@ -94,7 +135,7 @@ func (*UserRepository) SendVerificationEmail(user models.User, code string) erro
 	}
 
 	siteData, _ := configs.GetSiteData(".")
-	// Send Email if register successfully
+	// Send Email
 	emailData := helpers.EmailData{
 		URL:          siteData.ClientOrigin + "/verify-email/" + code,
 		FirstName:    accountName,
@@ -135,7 +176,7 @@ func (r *UserRepository) VerificationEmail(code string) *fiber.Error {
 	verification_code := utils.Encode(code)
 
 	var user models.User
-	result := r.DB.First(&user, "verification_code = ?", verification_code)
+	result := r.DB.First(&user, "verification_code=?", verification_code)
 	if result.Error != nil {
 		return fiber.NewError(404, "Invalid verification code or user doesn't exists.")
 	}
@@ -146,7 +187,7 @@ func (r *UserRepository) VerificationEmail(code string) *fiber.Error {
 	user.VerifiedAt = &now
 
 	// run update userprofile.statud_id to 1 (Active)
-	r.DB.Model(&models.UserProfile{}).Where("user_id = ?", user.ID).
+	r.DB.Model(&models.UserProfile{}).Where("user_id=?", user.ID).
 		Update("status_id", 1)
 
 	err := r.DB.Save(&user).Error
@@ -160,7 +201,7 @@ func (r *UserRepository) VerificationEmail(code string) *fiber.Error {
 // EmailExists implements models.UserRepository.
 func (r *UserRepository) EmailExists(email string) *fiber.Error {
 	var user models.User
-	result := r.DB.Where("email = ?", strings.ToLower(email)).Find(&user)
+	result := r.DB.Where("email=?", strings.ToLower(email)).Find(&user)
 	if result.Error != nil {
 		return fiber.NewError(500, result.Error.Error())
 	}
@@ -174,7 +215,7 @@ func (r *UserRepository) EmailExists(email string) *fiber.Error {
 // UsernameExists implements models.UserRepository.
 func (r *UserRepository) UsernameExists(username string) *fiber.Error {
 	var user models.User
-	result := r.DB.Where("username = ?", strings.ToLower(username)).Find(&user)
+	result := r.DB.Where("username=?", strings.ToLower(username)).Find(&user)
 	if result.Error != nil {
 		return fiber.NewError(500, result.Error.Error())
 	}
@@ -255,7 +296,7 @@ func (r *UserRepository) RefreshToken(payload models.RefreshTokenInput) (models.
 	}
 
 	var user models.User
-	err = r.DB.First(&user, "id = ?", tokenClaims.UserID).Error
+	err = r.DB.First(&user, "id=?", tokenClaims.UserID).Error
 
 	if err == gorm.ErrRecordNotFound {
 		return token, fiber.NewError(404, "the user belonging to this token no logger exists")

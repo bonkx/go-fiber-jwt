@@ -34,7 +34,7 @@ func JWTAuthMiddleware() fiber.Handler {
 		}
 
 		var user models.User
-		err = configs.DB.Preload("UserProfile.Status").First(&user, "id = ?", userid).Error
+		err = configs.DB.Preload("UserProfile.Status").First(&user, "id=?", userid).Error
 
 		if err == gorm.ErrRecordNotFound {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{

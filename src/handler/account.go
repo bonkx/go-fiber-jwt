@@ -21,6 +21,7 @@ func NewAccountHandler(r fiber.Router, userUsecase models.UserUsecase) {
 
 	// public API
 	acc.Post("/forgot-password", handler.ForgotPassword)
+	acc.Post("/forgot-password-otp", handler.ForgotPasswordOTP)
 
 	// private API
 	acc.Get("/me", middleware.JWTAuthMiddleware(), handler.GetMe)
@@ -66,5 +67,37 @@ func (h *AccountHandler) ForgotPassword(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"code":    fiber.StatusOK,
 		"message": message,
+	})
+}
+
+func (h *AccountHandler) ForgotPasswordOTP(c *fiber.Ctx) error {
+	var payload models.OTPInput
+
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(
+			fiber.NewError(fiber.StatusBadRequest, err.Error()),
+		)
+	}
+
+	// form POST validations
+	errors := models.ValidateStruct(payload)
+	if errors != nil {
+		errD := models.ErrorDetailsResponse{
+			Code:    fiber.ErrUnprocessableEntity.Code,
+			Message: fiber.ErrUnprocessableEntity.Message,
+			Errors:  errors,
+		}
+		return c.Status(errD.Code).JSON(errD)
+	}
+
+	refNo, err := h.userUsecase.ForgotPasswordOTP(c.Context(), payload)
+	if err != nil {
+		return c.Status(err.Code).JSON(err)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"code":         fiber.StatusOK,
+		"message":      "OTP verification successful",
+		"reference_no": refNo,
 	})
 }

@@ -36,7 +36,7 @@ func (h *EmailHandler) VerifyEmail(c *fiber.Ctx) error {
 
 	siteData, _ := configs.GetSiteData(".")
 	emailData := helpers.EmailData{
-		Subject:  "Account verification success",
+		Subject:  "Account verification successful",
 		SiteData: siteData,
 	}
 
@@ -61,7 +61,7 @@ func (h *EmailHandler) ViewVerifySuccess(c *fiber.Ctx) error {
 	siteData, _ := configs.GetSiteData(".")
 
 	emailData := helpers.EmailData{
-		Subject:  "Account verification success",
+		Subject:  "Account verification successful",
 		SiteData: siteData,
 	}
 

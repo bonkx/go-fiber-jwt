@@ -1,4 +1,4 @@
-# go-fiber jwt docker
+# Golang Fiber with Docker
 
 Golang Rest API with [Fiber](https://github.com/gofiber/fiber) and [GORM](https://github.com/go-gorm/gorm) and Docker
 
@@ -23,9 +23,9 @@ With pattern Handler, Usecase, Repository
   - [x] Login
   - [x] JWT Auth Middleware + Redis
   - [x] Refresh Token
-  - [ ] Forgot Password, send email OTP
-  - [ ] Forgot Password Verify OTP
-  - [ ] Change Password
+  - [x] Forgot Password, send email OTP
+  - [x] Forgot Password Verify OTP
+  - [ ] Reset Password
   - [x] Logout
 - [ ] CRUD
   - [ ] Pagination with custom Paginate [pagination-using-gorm-scopes](https://dev.to/rafaelgfirmino/pagination-using-gorm-scopes-3k5f)

@@ -18,7 +18,3 @@ type LoginInput struct {
 type RefreshTokenInput struct {
 	RefreshToken string `json:"refresh_token" validate:"required"`
 }
-
-type EmailInput struct {
-	Email string `json:"email" validate:"required,email"`
-}
