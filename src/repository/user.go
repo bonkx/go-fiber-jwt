@@ -21,6 +21,25 @@ type UserRepository struct {
 	DB *gorm.DB
 }
 
+func (r *UserRepository) deleteAllOTPRequestByEmail(email string) {
+	fmt.Println("deleteAllOTPRequestByEmail ======================")
+	r.DB.Unscoped().Where("email=?", email).Delete(&models.OTPRequest{})
+}
+
+// ResetPassword implements models.UserRepository.
+func (r *UserRepository) ResetPassword(user models.User) *fiber.Error {
+
+	err := r.DB.Save(&user).Error
+	if err != nil {
+		return fiber.NewError(500, err.Error())
+	}
+
+	// goroutine - delete all otpotpR by email
+	go r.deleteAllOTPRequestByEmail(user.Email)
+
+	return nil
+}
+
 // VerifyOTP implements models.UserRepository.
 func (r *UserRepository) VerifyOTP(otpR models.OTPRequest) (string, *fiber.Error) {
 	// generate random number (20)

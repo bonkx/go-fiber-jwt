@@ -25,8 +25,15 @@ With pattern Handler, Usecase, Repository
   - [x] Refresh Token
   - [x] Forgot Password, send email OTP
   - [x] Forgot Password Verify OTP
-  - [ ] Reset Password
+  - [x] Reset Password
   - [x] Logout
+- [ ] Account
+  - [ ] Get Profile
+  - [ ] Update Profile
+  - [ ] Upload Photo Profile
+  - [ ] Change Password
+  - [ ] Deletion Account
+  - [ ] User Activity (last login at, ip address in middleware)
 - [ ] CRUD
   - [ ] Pagination with custom Paginate [pagination-using-gorm-scopes](https://dev.to/rafaelgfirmino/pagination-using-gorm-scopes-3k5f)
   - [ ] Redis List Pagination

@@ -32,11 +32,11 @@ type User struct {
 }
 
 func (user *User) BeforeCreate(*gorm.DB) error {
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	passwordHash, err := user.HashPassword(user.Password)
 	if err != nil {
-		return fmt.Errorf("could not hash password %w", err)
+		return err
 	}
-	user.Password = string(passwordHash)
+	user.Password = passwordHash
 	user.Username = html.EscapeString(strings.TrimSpace(user.Username))
 	user.Email = strings.ToLower(user.Email)
 
@@ -55,6 +55,14 @@ func (user *User) ValidatePassword(password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 }
 
+func (user *User) HashPassword(password string) (string, error) {
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", fmt.Errorf("could not hash password %w", err)
+	}
+	return string(passwordHash), nil
+}
+
 type UserUsecase interface {
 	Register(ctx context.Context, payload RegisterInput) (User, *fiber.Error)
 	Login(ctx context.Context, payload LoginInput) (Token, *fiber.Error)
@@ -65,6 +73,7 @@ type UserUsecase interface {
 
 	ForgotPassword(ctx context.Context, payload EmailInput) *fiber.Error
 	ForgotPasswordOTP(ctx context.Context, payload OTPInput) (string, *fiber.Error)
+	ResetPassword(ctx context.Context, payload ResetPasswordInput) *fiber.Error
 	// Update(ctx context.Context, md User) error
 	// Delete(ctx context.Context, md User) error
 }
@@ -85,6 +94,8 @@ type UserRepository interface {
 	FindOTPRequest(otp string) (OTPRequest, *fiber.Error)
 	FindReferenceOTPRequest(refNo string) (OTPRequest, *fiber.Error)
 	VerifyOTP(md OTPRequest) (string, *fiber.Error)
+	ResetPassword(md User) *fiber.Error
+	// DeleteAllOTPRequestByEmail(email string) *fiber.Error
 
 	EmailExists(email string) *fiber.Error
 	UsernameExists(username string) *fiber.Error

@@ -13,6 +13,37 @@ type UserUsecase struct {
 	userRepo models.UserRepository
 }
 
+// ResetPassword implements models.UserUsecase.
+func (uc *UserUsecase) ResetPassword(ctx context.Context, payload models.ResetPasswordInput) *fiber.Error {
+	// find OTP Request
+	otpR, err := uc.userRepo.FindReferenceOTPRequest(payload.ReferenceNo)
+	if err != nil {
+		return err
+	}
+
+	// find user from ototpR email
+	user := models.User{}
+	user, err = uc.userRepo.FindUserByEmail(otpR.Email)
+	if err != nil {
+		return err
+	}
+
+	passwordHash, errHash := user.HashPassword(payload.Password)
+	if errHash != nil {
+		return fiber.NewError(500, errHash.Error())
+	}
+	// update user password
+	user.Password = passwordHash
+
+	// do reset password
+	err = uc.userRepo.ResetPassword(user)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // ForgotPasswordOTP implements models.UserUsecase.
 func (uc *UserUsecase) ForgotPasswordOTP(ctx context.Context, payload models.OTPInput) (string, *fiber.Error) {
 	// find OTP Request
