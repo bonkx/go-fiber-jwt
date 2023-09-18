@@ -34,7 +34,7 @@ With pattern Handler, Usecase, Repository
   - [x] Upload File, upload image(compressed)
   - [x] Change Password
   - [x] Deletion Account with OTP
-  - [ ] Recover deleted account (Admin role)
+  - [x] Recover deleted account (Admin role)
   - [ ] User Activity (last login at, ip address in middleware)
 - [ ] CRUD
   - [ ] Pagination with custom Paginate [pagination-using-gorm-scopes](https://dev.to/rafaelgfirmino/pagination-using-gorm-scopes-3k5f)

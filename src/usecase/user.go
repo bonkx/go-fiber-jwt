@@ -20,6 +20,45 @@ func NewUserUsecase(userRepo models.UserRepository) models.UserUsecase {
 	}
 }
 
+// DeleteUser implements models.UserUsecase.
+func (uc *UserUsecase) DeleteUser(c *fiber.Ctx, id uint) *fiber.Error {
+	// get user data
+	user, err := uc.userRepo.FindUserById(id)
+	if err != nil {
+		return err
+	}
+
+	// deleted user
+	err = uc.userRepo.Delete(user)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// RestoreUser implements models.UserUsecase.
+func (uc *UserUsecase) RestoreUser(c *fiber.Ctx, email string) *fiber.Error {
+	// find user from email
+	user, err := uc.userRepo.FindDeletedUserByEmail(email)
+	if err != nil {
+		return err
+	}
+
+	// check user is deleted
+	if !user.DeletedAt.Valid {
+		return fiber.NewError(422, "Unable to process, this account exists in the database")
+	}
+
+	// restore deleted user by ID
+	err = uc.userRepo.RestoreUser(user.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // DeleteAccount implements models.UserUsecase.
 func (uc *UserUsecase) DeleteAccount(c *fiber.Ctx, otp string) *fiber.Error {
 	user, errLocal := c.Locals("user").(models.User)

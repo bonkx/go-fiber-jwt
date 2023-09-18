@@ -77,7 +77,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		return c.Status(err.Code).JSON(err)
 	}
 
-	message := "We sent an email with a verification link to " + savedUser.Email
+	message := "We sent an email with a verification link to " + savedUser.Email + ". Check your inbox."
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"code":    fiber.StatusCreated,
 		"user":    savedUser,
@@ -109,7 +109,7 @@ func (h *AuthHandler) RequestVerifyCode(c *fiber.Ctx) error {
 		return c.Status(err.Code).JSON(err)
 	}
 
-	message := "We sent an email with a verification link to " + payload.Email
+	message := "We sent an email with a verification link to " + payload.Email + ". Check your inbox."
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"code":    fiber.StatusOK,
 		"message": message,
@@ -218,7 +218,7 @@ func (h *AuthHandler) ForgotPassword(c *fiber.Ctx) error {
 		return c.Status(err.Code).JSON(err)
 	}
 
-	message := "We sent an email with a OTP code to " + payload.Email
+	message := "We sent an email with a OTP code to " + payload.Email + ". Check your inbox."
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"code":    fiber.StatusOK,
 		"message": message,

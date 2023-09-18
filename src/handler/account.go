@@ -140,9 +140,10 @@ func (h *AccountHandler) RequestDeleteAccount(c *fiber.Ctx) error {
 		return c.Status(err.Code).JSON(err)
 	}
 
+	message := "We sent an email with a OTP code to your email. Check your inbox."
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"code":    fiber.StatusOK,
-		"message": "Request has been processed successfully",
+		"message": message,
 	})
 }
 

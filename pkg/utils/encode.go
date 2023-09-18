@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/base64"
+	"strconv"
 	"strings"
 )
 
@@ -33,4 +34,9 @@ func FormatPhoneNumber(phone_number string) string {
 	// - remove -
 	phone = strings.ReplaceAll(phone, "-", "")
 	return phone
+}
+
+func StringToUint(s string) uint {
+	i, _ := strconv.Atoi(s)
+	return uint(i)
 }

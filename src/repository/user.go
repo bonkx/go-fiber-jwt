@@ -26,6 +26,17 @@ func NewUserRepository(Conn *gorm.DB) models.UserRepository {
 	return &UserRepository{Conn}
 }
 
+// RestoreUser implements models.UserRepository.
+func (r *UserRepository) RestoreUser(id uint) *fiber.Error {
+	fmt.Println("RestoreUser ==========")
+	var user models.User
+	err := r.DB.Unscoped().Model(&user).Where("id = ?", id).Update("deleted_at", nil).Error
+	if err != nil {
+		return fiber.NewError(500, err.Error())
+	}
+	return nil
+}
+
 // Delete implements models.UserRepository.
 func (r *UserRepository) Delete(user models.User) *fiber.Error {
 	// delete user
@@ -64,7 +75,7 @@ func (r *UserRepository) ChangePassword(user models.User) *fiber.Error {
 
 func (r *UserRepository) deleteAllOTPRequestByEmail(email string) {
 	fmt.Println("deleteAllOTPRequestByEmail ======================")
-	r.DB.Unscoped().Where("email=?", email).Delete(&models.OTPRequest{})
+	r.DB.Unscoped().Where("email = ?", email).Delete(&models.OTPRequest{})
 }
 
 // ResetPassword implements models.UserRepository.
@@ -103,7 +114,7 @@ func (r *UserRepository) VerifyOTP(otpR models.OTPRequest) (string, *fiber.Error
 func (r *UserRepository) FindReferenceOTPRequest(refNo string) (models.OTPRequest, *fiber.Error) {
 	otpR := models.OTPRequest{}
 
-	result := r.DB.First(&otpR, "reference_no=?", refNo)
+	result := r.DB.First(&otpR, "reference_no = ?", refNo)
 	if result.RowsAffected == 0 {
 		return otpR, fiber.NewError(422, "ReferenceNo doesn't exists.")
 	}
@@ -114,7 +125,7 @@ func (r *UserRepository) FindReferenceOTPRequest(refNo string) (models.OTPReques
 func (r *UserRepository) FindOTPRequest(otp string) (models.OTPRequest, *fiber.Error) {
 	otpR := models.OTPRequest{}
 
-	result := r.DB.First(&otpR, "otp=?", otp)
+	result := r.DB.First(&otpR, "otp = ?", otp)
 	if result.RowsAffected == 0 {
 		return otpR, fiber.NewError(422, "OTP code doesn't exists.")
 	}
@@ -237,7 +248,7 @@ func (r *UserRepository) VerificationEmail(code string) *fiber.Error {
 	verification_code := utils.Encode(code)
 
 	var user models.User
-	result := r.DB.First(&user, "verification_code=?", verification_code)
+	result := r.DB.First(&user, "verification_code = ?", verification_code)
 	if result.Error != nil {
 		return fiber.NewError(404, "Invalid verification code or user doesn't exists.")
 	}
@@ -248,7 +259,7 @@ func (r *UserRepository) VerificationEmail(code string) *fiber.Error {
 	user.VerifiedAt = &now
 
 	// run update userprofile.statud_id to 1 (Active)
-	r.DB.Model(&models.UserProfile{}).Where("user_id=?", user.ID).
+	r.DB.Model(&models.UserProfile{}).Where("user_id = ?", user.ID).
 		Update("status_id", 1)
 
 	err := r.DB.Save(&user).Error
@@ -262,7 +273,7 @@ func (r *UserRepository) VerificationEmail(code string) *fiber.Error {
 // EmailExists implements models.UserRepository.
 func (r *UserRepository) EmailExists(email string) *fiber.Error {
 	var user models.User
-	result := r.DB.Where("email=?", strings.ToLower(email)).Find(&user)
+	result := r.DB.Where("email = ?", strings.ToLower(email)).Find(&user)
 	if result.Error != nil {
 		return fiber.NewError(500, result.Error.Error())
 	}
@@ -276,7 +287,7 @@ func (r *UserRepository) EmailExists(email string) *fiber.Error {
 // UsernameExists implements models.UserRepository.
 func (r *UserRepository) UsernameExists(username string) *fiber.Error {
 	var user models.User
-	result := r.DB.Where("username=?", strings.ToLower(username)).Find(&user)
+	result := r.DB.Where("username = ?", strings.ToLower(username)).Find(&user)
 	if result.Error != nil {
 		return fiber.NewError(500, result.Error.Error())
 	}
@@ -292,16 +303,29 @@ func (r *UserRepository) Create(md models.User) *fiber.Error {
 	panic("unimplemented")
 }
 
+// FindDeletedUserByEmail implements models.UserRepository.
+func (r *UserRepository) FindDeletedUserByEmail(email string) (models.User, *fiber.Error) {
+	var user models.User
+	result := r.DB.Unscoped().Where("email = ?", email).Find(&user)
+	if result.Error != nil {
+		return user, fiber.NewError(500, result.Error.Error())
+	}
+	if result.RowsAffected == 0 {
+		return user, fiber.NewError(404, "Account doesn't exists.")
+	}
+	return user, nil
+}
+
 // FindUserById implements models.UserRepository.
 func (r *UserRepository) FindUserById(id uint) (models.User, *fiber.Error) {
 	var user models.User
-	result := r.DB.Preload("UserProfile.Status").Where("ID=?", id).Find(&user)
+	result := r.DB.Preload("UserProfile.Status").Where("ID = ?", id).Find(&user)
 	if result.Error != nil {
 		return user, fiber.NewError(500, result.Error.Error())
 	}
 
 	if result.RowsAffected == 0 {
-		return user, fiber.NewError(422, "Invalid email or account doesn't exists.")
+		return user, fiber.NewError(422, "Invalid ID or account doesn't exists.")
 	}
 	return user, nil
 }
@@ -309,7 +333,7 @@ func (r *UserRepository) FindUserById(id uint) (models.User, *fiber.Error) {
 // FindUserByEmail implements models.UserRepository.
 func (r *UserRepository) FindUserByEmail(email string) (models.User, *fiber.Error) {
 	var user models.User
-	result := r.DB.Where("email=?", strings.ToLower(email)).Find(&user)
+	result := r.DB.Where("email = ?", strings.ToLower(email)).Find(&user)
 	if result.Error != nil {
 		return user, fiber.NewError(500, result.Error.Error())
 	}
@@ -324,7 +348,7 @@ func (r *UserRepository) FindUserByEmail(email string) (models.User, *fiber.Erro
 // FindUserByIdentity implements models.UserRepository.
 func (r *UserRepository) FindUserByIdentity(identity string) (models.User, *fiber.Error) {
 	var user models.User
-	result := r.DB.Where("username=?", strings.ToLower(identity)).Or("email=?", strings.ToLower(identity)).Find(&user)
+	result := r.DB.Where("username = ?", strings.ToLower(identity)).Or("email = ?", strings.ToLower(identity)).Find(&user)
 	if result.Error != nil {
 		return user, fiber.NewError(500, result.Error.Error())
 	}
@@ -357,7 +381,7 @@ func (r *UserRepository) RefreshToken(payload models.RefreshTokenInput) (models.
 	}
 
 	var user models.User
-	err = r.DB.First(&user, "id=?", tokenClaims.UserID).Error
+	err = r.DB.First(&user, "id = ?", tokenClaims.UserID).Error
 
 	if err == gorm.ErrRecordNotFound {
 		return token, fiber.NewError(404, "the user belonging to this token no logger exists")

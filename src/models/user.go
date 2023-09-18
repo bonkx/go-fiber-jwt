@@ -81,6 +81,10 @@ type UserUsecase interface {
 	UploadPhotoProfile(c *fiber.Ctx, md User) *fiber.Error
 	RequestDeleteAccount(c *fiber.Ctx, md User) *fiber.Error
 	DeleteAccount(c *fiber.Ctx, otp string) *fiber.Error
+
+	// ADMIN ROLE
+	RestoreUser(c *fiber.Ctx, email string) *fiber.Error
+	DeleteUser(c *fiber.Ctx, id uint) *fiber.Error
 }
 
 type UserRepository interface {
@@ -110,4 +114,8 @@ type UserRepository interface {
 	FindUserByIdentity(identity string) (User, *fiber.Error)
 	FindUserByEmail(email string) (User, *fiber.Error)
 	FindUserById(id uint) (User, *fiber.Error)
+
+	// ADMIN ROLE
+	FindDeletedUserByEmail(email string) (User, *fiber.Error)
+	RestoreUser(id uint) *fiber.Error
 }
