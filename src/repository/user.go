@@ -26,6 +26,20 @@ func NewUserRepository(Conn *gorm.DB) models.UserRepository {
 	return &UserRepository{Conn}
 }
 
+// Delete implements models.UserRepository.
+func (r *UserRepository) Delete(user models.User) *fiber.Error {
+	// delete user
+	err := r.DB.Delete(&user).Error
+	if err != nil {
+		return fiber.NewError(500, err.Error())
+	}
+
+	// goroutine - delete all otpotpR by email
+	go r.deleteAllOTPRequestByEmail(user.Email)
+
+	return nil
+}
+
 // Update implements models.UserRepository.
 func (r *UserRepository) Update(user models.User) (models.User, *fiber.Error) {
 
@@ -108,7 +122,7 @@ func (r *UserRepository) FindOTPRequest(otp string) (models.OTPRequest, *fiber.E
 }
 
 // RequestOTPEmail implements models.UserRepository.
-func (r *UserRepository) RequestOTPEmail(user models.User) *fiber.Error {
+func (r *UserRepository) RequestOTPEmail(user models.User, message string) *fiber.Error {
 	otpR := models.OTPRequest{Email: user.Email}
 
 	// create OTP Request
@@ -122,6 +136,7 @@ func (r *UserRepository) RequestOTPEmail(user models.User) *fiber.Error {
 		URL:          otpR.Otp,
 		FirstName:    user.Email,
 		Subject:      "Your OTP code",
+		Message:      message,
 		TypeOfAction: "Forgot Password",
 		SiteData:     siteData,
 	}

@@ -79,6 +79,8 @@ type UserUsecase interface {
 	Update(c *fiber.Ctx, payload UpdateProfileInput) (User, *fiber.Error)
 	// Delete(ctx context.Context, md User) *fiber.Error
 	UploadPhotoProfile(c *fiber.Ctx, md User) *fiber.Error
+	RequestDeleteAccount(c *fiber.Ctx, md User) *fiber.Error
+	DeleteAccount(c *fiber.Ctx, otp string) *fiber.Error
 }
 
 type UserRepository interface {
@@ -93,7 +95,7 @@ type UserRepository interface {
 	DeleteToken(authD *AccessDetails) *fiber.Error
 	VerificationEmail(code string) *fiber.Error
 	ResendVerificationCode(md User) *fiber.Error
-	RequestOTPEmail(md User) *fiber.Error
+	RequestOTPEmail(md User, message string) *fiber.Error
 	FindOTPRequest(otp string) (OTPRequest, *fiber.Error)
 	FindReferenceOTPRequest(refNo string) (OTPRequest, *fiber.Error)
 	VerifyOTP(md OTPRequest) (string, *fiber.Error)
@@ -104,7 +106,7 @@ type UserRepository interface {
 	UsernameExists(username string) *fiber.Error
 	Create(md User) *fiber.Error
 	Update(md User) (User, *fiber.Error)
-	// Delete( md User) *fiber.Error
+	Delete(md User) *fiber.Error
 	FindUserByIdentity(identity string) (User, *fiber.Error)
 	FindUserByEmail(email string) (User, *fiber.Error)
 	FindUserById(id uint) (User, *fiber.Error)

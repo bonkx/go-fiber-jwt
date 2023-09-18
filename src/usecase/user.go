@@ -20,6 +20,39 @@ func NewUserUsecase(userRepo models.UserRepository) models.UserUsecase {
 	}
 }
 
+// DeleteAccount implements models.UserUsecase.
+func (uc *UserUsecase) DeleteAccount(c *fiber.Ctx, otp string) *fiber.Error {
+	user, errLocal := c.Locals("user").(models.User)
+	if !errLocal {
+		return fiber.NewError(500, "Unable to extract user from request context for unknown reason")
+	}
+
+	// find OTP Request
+	_, err := uc.userRepo.FindOTPRequest(otp)
+	if err != nil {
+		return err
+	}
+
+	err = uc.userRepo.Delete(user)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// RequestDeleteAccount implements models.UserUsecase.
+func (uc *UserUsecase) RequestDeleteAccount(c *fiber.Ctx, user models.User) *fiber.Error {
+	message := "Here, your OTP code for delete the account:"
+
+	// do request OTP
+	if err := uc.userRepo.RequestOTPEmail(user, message); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // UploadPhotoProfile implements models.UserUsecase.
 func (uc *UserUsecase) UploadPhotoProfile(c *fiber.Ctx, user models.User) *fiber.Error {
 
@@ -42,17 +75,17 @@ func (uc *UserUsecase) UploadPhotoProfile(c *fiber.Ctx, user models.User) *fiber
 
 // Update implements models.UserUsecase.
 func (uc *UserUsecase) Update(c *fiber.Ctx, payload models.UpdateProfileInput) (models.User, *fiber.Error) {
-	user := models.User{}
-	userLocal, errLocal := c.Locals("user").(models.User)
+	// user := models.User{}
+	user, errLocal := c.Locals("user").(models.User)
 	if !errLocal {
 		return user, fiber.NewError(500, "Unable to extract user from request context for unknown reason")
 	}
 
 	// get latest user data
-	user, err := uc.userRepo.FindUserById(userLocal.ID)
-	if err != nil {
-		return user, err
-	}
+	// user, err := uc.userRepo.FindUserById(userLocal.ID)
+	// if err != nil {
+	// 	return user, err
+	// }
 
 	dateBirthday, errFormat := time.Parse(time.DateOnly, payload.Birthday)
 	if errFormat != nil {
@@ -66,7 +99,7 @@ func (uc *UserUsecase) Update(c *fiber.Ctx, payload models.UpdateProfileInput) (
 	user.UserProfile.Birthday = &dateBirthday
 
 	// do update user
-	user, err = uc.userRepo.Update(user)
+	user, err := uc.userRepo.Update(user)
 	if err != nil {
 		return user, err
 	}
@@ -157,8 +190,9 @@ func (uc *UserUsecase) ForgotPassword(ctx context.Context, payload models.EmailI
 		return err
 	}
 
+	message := "Here, your OTP code for reset your password:"
 	// do request OTP
-	if err := uc.userRepo.RequestOTPEmail(user); err != nil {
+	if err := uc.userRepo.RequestOTPEmail(user, message); err != nil {
 		return err
 	}
 	return nil

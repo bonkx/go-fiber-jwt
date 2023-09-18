@@ -20,6 +20,7 @@ type EmailData struct {
 	URL          string
 	FirstName    string
 	Subject      string
+	Message      string
 	TypeOfAction string
 	SiteData     configs.SiteData
 }
@@ -101,5 +102,4 @@ func SendEmail(user models.User, emailData *EmailData, emailTemplatename string)
 	if err := d.DialAndSend(m); err != nil {
 		log.Fatal("Could not send email: ", err)
 	}
-
 }
