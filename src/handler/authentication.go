@@ -37,15 +37,13 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	var payload models.RegisterInput
 
 	if err := c.BodyParser(&payload); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.NewError(fiber.StatusBadRequest, err.Error()),
-		)
+		errD := fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	if payload.Password != payload.PasswordConfirm {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.NewError(400, "Passwords do not match!"),
-		)
+		errD := fiber.NewError(fiber.StatusBadRequest, "Passwords do not match!")
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	// form POST validation
@@ -91,9 +89,8 @@ func (h *AuthHandler) RequestVerifyCode(c *fiber.Ctx) error {
 	var payload models.EmailInput
 
 	if err := c.BodyParser(&payload); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.NewError(fiber.StatusBadRequest, err.Error()),
-		)
+		errD := fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	// form POST validations
@@ -123,9 +120,8 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	var payload models.LoginInput
 
 	if err := c.BodyParser(&payload); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.NewError(fiber.StatusBadRequest, err.Error()),
-		)
+		errD := fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	// form POST validation
@@ -158,9 +154,8 @@ func (h *AuthHandler) RefreshAccessToken(c *fiber.Ctx) error {
 	var payload models.RefreshTokenInput
 
 	if err := c.BodyParser(&payload); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.NewError(fiber.StatusBadRequest, err.Error()),
-		)
+		errD := fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	// form POST validations
@@ -185,9 +180,8 @@ func (h *AuthHandler) RefreshAccessToken(c *fiber.Ctx) error {
 func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 	token, err := helpers.ExtractTokenMetadata(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(
-			fiber.NewError(fiber.StatusUnauthorized, err.Error()),
-		)
+		errD := fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	if err := h.userUsecase.Logout(token); err != nil {
@@ -204,9 +198,8 @@ func (h *AuthHandler) ForgotPassword(c *fiber.Ctx) error {
 	var payload models.EmailInput
 
 	if err := c.BodyParser(&payload); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.NewError(fiber.StatusBadRequest, err.Error()),
-		)
+		errD := fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	// form POST validations
@@ -236,9 +229,8 @@ func (h *AuthHandler) ForgotPasswordOTP(c *fiber.Ctx) error {
 	var payload models.OTPInput
 
 	if err := c.BodyParser(&payload); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.NewError(fiber.StatusBadRequest, err.Error()),
-		)
+		errD := fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	// form POST validations
@@ -268,15 +260,13 @@ func (h *AuthHandler) ResetPassword(c *fiber.Ctx) error {
 	var payload models.ResetPasswordInput
 
 	if err := c.BodyParser(&payload); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.NewError(fiber.StatusBadRequest, err.Error()),
-		)
+		errD := fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	if payload.Password != payload.PasswordConfirm {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			fiber.NewError(400, "Passwords do not match!"),
-		)
+		errD := fiber.NewError(fiber.StatusBadRequest, "Passwords do not match!")
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	// form POST validations

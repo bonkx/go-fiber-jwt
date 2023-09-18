@@ -78,6 +78,7 @@ type UserUsecase interface {
 	ChangePassword(ctx context.Context, md User, payload ChangePasswordInput) *fiber.Error
 	Update(c *fiber.Ctx, payload UpdateProfileInput) (User, *fiber.Error)
 	// Delete(ctx context.Context, md User) *fiber.Error
+	UploadPhotoProfile(c *fiber.Ctx, md User) *fiber.Error
 }
 
 type UserRepository interface {

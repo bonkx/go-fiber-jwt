@@ -30,7 +30,8 @@ With pattern Handler, Usecase, Repository
 - [ ] Account
   - [x] Get Profile
   - [x] Update Profile
-  - [ ] Upload Photo Profile
+  - [x] Update Photo Profile + thumbnail
+  - [x] Upload File, upload image(compressed)
   - [x] Change Password
   - [ ] Deletion Account
   - [ ] User Activity (last login at, ip address in middleware)

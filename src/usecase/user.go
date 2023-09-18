@@ -20,6 +20,26 @@ func NewUserUsecase(userRepo models.UserRepository) models.UserUsecase {
 	}
 }
 
+// UploadPhotoProfile implements models.UserUsecase.
+func (uc *UserUsecase) UploadPhotoProfile(c *fiber.Ctx, user models.User) *fiber.Error {
+
+	imageUrl, errFile := utils.ImageUpload(c, "file", "users")
+	if errFile != nil {
+		return fiber.NewError(500, errFile.Error())
+	}
+
+	// update user profile data
+	user.UserProfile.Photo = imageUrl
+
+	// do update user
+	_, err := uc.userRepo.Update(user)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Update implements models.UserUsecase.
 func (uc *UserUsecase) Update(c *fiber.Ctx, payload models.UpdateProfileInput) (models.User, *fiber.Error) {
 	user := models.User{}

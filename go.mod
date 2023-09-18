@@ -5,6 +5,9 @@ go 1.20
 require (
 	github.com/gofiber/fiber/v2 v2.49.1
 	github.com/golang-jwt/jwt/v4 v4.5.0
+	github.com/google/uuid v1.3.1
+	github.com/h2non/bimg v1.1.9
+	github.com/h2non/filetype v1.1.3
 	github.com/k3a/html2text v1.2.1
 	github.com/redis/go-redis/v9 v9.1.0
 	github.com/satori/go.uuid v1.2.0
@@ -27,7 +30,6 @@ require (
 	github.com/go-openapi/swag v0.22.4 // indirect
 	github.com/gofiber/template v1.8.2 // indirect
 	github.com/gofiber/utils v1.1.0 // indirect
-	github.com/google/uuid v1.3.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
