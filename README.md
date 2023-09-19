@@ -35,7 +35,7 @@ With pattern Handler, Usecase, Repository
   - [x] Change Password
   - [x] Deletion Account with OTP
   - [x] Recover deleted account (Admin role)
-  - [ ] User Activity (last login at, ip address in middleware)
+  - [x] User Activity with interval (last login at, ip address in middleware)
 - [ ] CRUD
   - [ ] Pagination with custom Paginate [pagination-using-gorm-scopes](https://dev.to/rafaelgfirmino/pagination-using-gorm-scopes-3k5f)
   - [ ] Redis List Pagination

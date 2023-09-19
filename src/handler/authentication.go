@@ -72,15 +72,14 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		payload.Phone = phone_number_validated
 	}
 
-	savedUser, err := h.userUsecase.Register(c.Context(), payload)
+	err := h.userUsecase.Register(c.Context(), payload)
 	if err != nil {
 		return c.Status(err.Code).JSON(err)
 	}
 
-	message := "We sent an email with a verification link to " + savedUser.Email + ". Check your inbox."
+	message := "We sent an email with a verification link to " + payload.Email + ". Check your inbox."
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"code":    fiber.StatusCreated,
-		"user":    savedUser,
 		"message": message,
 	})
 }

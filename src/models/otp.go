@@ -24,6 +24,6 @@ func (m *OTPRequest) BeforeCreate(*gorm.DB) error {
 	}
 
 	m.Otp = strconv.Itoa(randomCode)
-	m.ExpiredAt = time.Now().Local().Add(time.Hour * 24)
+	m.ExpiredAt = time.Now().Local().Add(time.Minute * 15)
 	return nil
 }

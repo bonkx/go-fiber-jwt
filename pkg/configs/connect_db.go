@@ -2,6 +2,7 @@ package configs
 
 import (
 	"fmt"
+	"myapp/src/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -42,9 +43,9 @@ func ConnectDB(config *Config) {
 
 	// Migrate the database
 	DB.AutoMigrate(
-	// &models.User{},
-	// &models.UserProfile{},
-	// &models.OTPRequest{},
+		// &models.User{},
+		// &models.UserProfile{},
+		&models.OTPRequest{},
 	// &models.Product{},
 	// &models.Fact{},
 	)

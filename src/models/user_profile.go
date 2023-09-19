@@ -13,7 +13,6 @@ type UserProfile struct {
 	Phone             string     `json:"phone" gorm:"size:20;"`
 	Photo             string     `json:"photo"`
 	Role              string     `json:"role" gorm:"size:100;"`
-	LastLoginIp       string     `json:"last_login_ip"`
 	LoginWithSosmed   bool       `json:"login_with_sosmed" gorm:"default:false"`
 	LoginWithSosmedAt *time.Time `json:"login_with_sosmed_at"`
 	Birthday          *time.Time `json:"birthday"`

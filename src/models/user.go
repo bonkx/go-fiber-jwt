@@ -24,7 +24,8 @@ type User struct {
 	Verified         bool       `json:"verified" gorm:"not null;default:false"`
 	IsSuperuser      bool       `json:"is_superuser" gorm:"default:false"`
 	IsStaff          bool       `json:"is_staff" gorm:"default:false"`
-	LastLogin        *time.Time `json:"last_login"`
+	LastLoginAt      *time.Time `json:"last_login_at"`
+	LastLoginIp      string     `json:"last_login_ip"`
 	VerificationCode string     `json:"verification_code"`
 	VerifiedAt       *time.Time `json:"verified_at"`
 
@@ -65,7 +66,7 @@ func (user *User) HashPassword(password string) (string, error) {
 }
 
 type UserUsecase interface {
-	Register(ctx context.Context, payload RegisterInput) (User, *fiber.Error)
+	Register(ctx context.Context, payload RegisterInput) *fiber.Error
 	Login(ctx context.Context, payload LoginInput) (Token, *fiber.Error)
 	RefreshToken(ctx context.Context, payload RefreshTokenInput) (Token, *fiber.Error)
 	VerificationEmail(ctx context.Context, code string) *fiber.Error
@@ -93,7 +94,7 @@ type UserRepository interface {
 	GeneratePairToken(userID uint) (Token, error)
 	SendVerificationEmail(md User, code string) error
 
-	Register(md User) (User, *fiber.Error)
+	Register(md User) *fiber.Error
 	Login(md User) (Token, *fiber.Error)
 	RefreshToken(payload RefreshTokenInput) (Token, *fiber.Error)
 	DeleteToken(authD *AccessDetails) *fiber.Error

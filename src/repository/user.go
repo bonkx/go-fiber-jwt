@@ -440,7 +440,7 @@ func (r *UserRepository) Login(user models.User) (models.Token, *fiber.Error) {
 }
 
 // Register implements models.UserRepository.
-func (r *UserRepository) Register(user models.User) (models.User, *fiber.Error) {
+func (r *UserRepository) Register(user models.User) *fiber.Error {
 	// Generate Verification Code
 	code := randstr.String(64)
 
@@ -453,14 +453,14 @@ func (r *UserRepository) Register(user models.User) (models.User, *fiber.Error) 
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key value violates unique") {
 			// fmt.Println(err)
-			return user, fiber.NewError(422, "user with that email/username already exists")
+			return fiber.NewError(422, "user with that email/username already exists")
 		}
 
-		return user, fiber.NewError(500, err.Error())
+		return fiber.NewError(500, err.Error())
 	}
 
 	// Send verification email
 	r.SendVerificationEmail(user, code)
 
-	return user, nil
+	return nil
 }

@@ -303,16 +303,16 @@ func (uc *UserUsecase) Login(ctx context.Context, payload models.LoginInput) (mo
 }
 
 // Register implements models.UserUsecase.
-func (uc *UserUsecase) Register(ctx context.Context, payload models.RegisterInput) (models.User, *fiber.Error) {
+func (uc *UserUsecase) Register(ctx context.Context, payload models.RegisterInput) *fiber.Error {
 
 	// cek email of user
 	if err := uc.userRepo.EmailExists(payload.Email); err != nil {
-		return models.User{}, err
+		return err
 	}
 
 	// cek username of user
 	if err := uc.userRepo.UsernameExists(payload.Username); err != nil {
-		return models.User{}, err
+		return err
 	}
 
 	user := models.User{
@@ -327,9 +327,9 @@ func (uc *UserUsecase) Register(ctx context.Context, payload models.RegisterInpu
 		},
 	}
 
-	user, err := uc.userRepo.Register(user)
+	err := uc.userRepo.Register(user)
 	if err != nil {
-		return user, err
+		return err
 	}
-	return user, nil
+	return nil
 }
