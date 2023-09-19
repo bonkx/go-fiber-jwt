@@ -94,14 +94,25 @@ func (uc *UserUsecase) RequestDeleteAccount(c *fiber.Ctx, user models.User) *fib
 
 // UploadPhotoProfile implements models.UserUsecase.
 func (uc *UserUsecase) UploadPhotoProfile(c *fiber.Ctx, user models.User) *fiber.Error {
+	// MultipartForm POST
+	if form, err := c.MultipartForm(); err == nil {
+		files := form.File["file"]
 
-	imageUrl, errFile := utils.ImageUpload(c, "file", "users")
-	if errFile != nil {
-		return fiber.NewError(500, errFile.Error())
+		// Loop through files:
+		for _, file := range files {
+			// fmt.Println(file.Filename, file.Size, file.Header["Content-Type"][0])
+			// => "avatar1.jpeg" 6472 "image/jpeg"
+
+			// // Save the files to disk:
+			imageUrl, errFile := utils.ImageUpload(c, file, "users")
+			if errFile != nil {
+				return fiber.NewError(500, errFile.Error())
+			}
+
+			// update user photo path
+			user.UserProfile.Photo = imageUrl
+		}
 	}
-
-	// update user profile data
-	user.UserProfile.Photo = imageUrl
 
 	// do update user
 	_, err := uc.userRepo.Update(user)
@@ -112,19 +123,33 @@ func (uc *UserUsecase) UploadPhotoProfile(c *fiber.Ctx, user models.User) *fiber
 	return nil
 }
 
-// Update implements models.UserUsecase.
-func (uc *UserUsecase) Update(c *fiber.Ctx, payload models.UpdateProfileInput) (models.User, *fiber.Error) {
+// UpdateProfile implements models.UserUsecase.
+func (uc *UserUsecase) UpdateProfile(c *fiber.Ctx, payload models.UpdateProfileInput) (models.User, *fiber.Error) {
 	// user := models.User{}
 	user, errLocal := c.Locals("user").(models.User)
 	if !errLocal {
 		return user, fiber.NewError(500, "Unable to extract user from request context for unknown reason")
 	}
 
-	// get latest user data
-	// user, err := uc.userRepo.FindUserById(userLocal.ID)
-	// if err != nil {
-	// 	return user, err
-	// }
+	// MultipartForm POST
+	if form, err := c.MultipartForm(); err == nil {
+		files := form.File["file"]
+
+		// Loop through files:
+		for _, file := range files {
+			// fmt.Println(file.Filename, file.Size, file.Header["Content-Type"][0])
+			// => "avatar1.jpeg" 6472 "image/jpeg"
+
+			// // Save the files to disk:
+			imageUrl, errFile := utils.ImageUpload(c, file, "users")
+			if errFile != nil {
+				return user, fiber.NewError(500, errFile.Error())
+			}
+
+			// update user photo path
+			user.UserProfile.Photo = imageUrl
+		}
+	}
 
 	dateBirthday, errFormat := time.Parse(time.DateOnly, payload.Birthday)
 	if errFormat != nil {

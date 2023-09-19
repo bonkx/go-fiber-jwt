@@ -27,7 +27,7 @@ With pattern Handler, Usecase, Repository
   - [x] Forgot Password Verify OTP
   - [x] Reset Password
   - [x] Logout
-- [ ] Account
+- [x] Account
   - [x] Get Profile
   - [x] Update Profile
   - [x] Update Photo Profile + thumbnail
@@ -41,7 +41,7 @@ With pattern Handler, Usecase, Repository
   - [ ] Redis List Pagination
   - [ ] Sort + Search function in List Data
   - [ ] Create Data
-  - [ ] Payload Sanitize
+  - [ ] Custom representation
   - [ ] Edit Data
   - [ ] Delete Data
 - [ ] Preload Model (Associations in Go/Serializer in Django)

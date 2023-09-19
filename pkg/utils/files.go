@@ -29,14 +29,9 @@ func createFolder(dirname string) error {
 	return nil
 }
 
-func FileUpload(c *fiber.Ctx, fileParam string, uploadTo string) (string, error) {
+func ImageUpload(c *fiber.Ctx, fileHeader *multipart.FileHeader, uploadTo string) (string, error) {
 
-	fileheader, err := c.FormFile(fileParam)
-	if err != nil {
-		return "", errors.New(err.Error())
-	}
-
-	file, err := fileheader.Open()
+	file, err := fileHeader.Open()
 	if err != nil {
 		return "", errors.New(err.Error())
 	}
@@ -54,7 +49,53 @@ func FileUpload(c *fiber.Ctx, fileParam string, uploadTo string) (string, error)
 	// create dir
 	errDir := createFolder(filePath)
 	if errDir != nil {
+		return "", errors.New(errDir.Error())
+	}
+
+	var filename = ""
+	// get file mime
+	kind, _ := filetype.Match(buffer)
+
+	if filetype.IsImage(buffer) {
+		// if image
+		filename, err = imageProcessing(buffer, 90, filePath)
+		if err != nil {
+			return "", errors.New(err.Error())
+		}
+	} else {
+		// return "", errors.New("The file must be a file of type: jpeg, jpg, png")
+		return "", errors.New("The file under validation must be an image (jpg, jpeg, png, bmp, gif, svg, or webp).")
+	}
+
+	imageUrl := fmt.Sprintf("%s/%s", filePath, filename)
+
+	log.Printf("Successfully uploaded %s to %s", kind.MIME.Value, imageUrl)
+
+	//here we save our file to our path
+	return imageUrl, nil
+}
+
+func FileUpload(c *fiber.Ctx, fileHeader *multipart.FileHeader, uploadTo string) (string, error) {
+
+	file, err := fileHeader.Open()
+	if err != nil {
 		return "", errors.New(err.Error())
+	}
+	defer file.Close()
+
+	buffer, err := io.ReadAll(file)
+	if err != nil {
+		return "", errors.New(err.Error())
+	}
+
+	year, month, day := time.Now().Date()
+	// initial dir path
+	filePath := fmt.Sprintf("media/%s/%v/%v/%v", uploadTo, year, int(month), day)
+
+	// create dir
+	errDir := createFolder(filePath)
+	if errDir != nil {
+		return "", errors.New(errDir.Error())
 	}
 
 	var filename = ""
@@ -71,11 +112,11 @@ func FileUpload(c *fiber.Ctx, fileParam string, uploadTo string) (string, error)
 		// if video
 	} else {
 		// if others file
-		filename, err = fileProcessing(c, fileheader, filePath)
+		filename, err = fileProcessing(c, fileHeader, filePath)
 		if err != nil {
 			return "", errors.New(err.Error())
 		}
-		errSave := c.SaveFile(fileheader, fmt.Sprintf("%s/%s", filePath, filename))
+		errSave := c.SaveFile(fileHeader, fmt.Sprintf("%s/%s", filePath, filename))
 		if errSave != nil {
 			return "", errors.New(err.Error())
 		}
@@ -178,55 +219,4 @@ func fileProcessing(c *fiber.Ctx, file *multipart.FileHeader, dirname string) (s
 	}
 
 	return filename, nil
-}
-
-func ImageUpload(c *fiber.Ctx, fileParam string, uploadTo string) (string, error) {
-
-	fileheader, err := c.FormFile(fileParam)
-	if err != nil {
-		return "", errors.New(err.Error())
-	}
-
-	file, err := fileheader.Open()
-	if err != nil {
-		return "", errors.New(err.Error())
-	}
-	defer file.Close()
-
-	buffer, err := io.ReadAll(file)
-	if err != nil {
-		return "", errors.New(err.Error())
-	}
-
-	year, month, day := time.Now().Date()
-	// initial dir path
-	filePath := fmt.Sprintf("media/%s/%v/%v/%v", uploadTo, year, int(month), day)
-
-	// create dir
-	errDir := createFolder(filePath)
-	if errDir != nil {
-		return "", errors.New(err.Error())
-	}
-
-	var filename = ""
-	// get file mime
-	kind, _ := filetype.Match(buffer)
-
-	if filetype.IsImage(buffer) {
-		// if image
-		filename, err = imageProcessing(buffer, 90, filePath)
-		if err != nil {
-			return "", errors.New(err.Error())
-		}
-	} else {
-		// return "", errors.New("The file must be a file of type: jpeg, jpg, png")
-		return "", errors.New("The file under validation must be an image (jpg, jpeg, png, bmp, gif, svg, or webp).")
-	}
-
-	imageUrl := fmt.Sprintf("%s/%s", filePath, filename)
-
-	log.Printf("Successfully uploaded %s to %s", kind.MIME.Value, imageUrl)
-
-	//here we save our file to our path
-	return imageUrl, nil
 }

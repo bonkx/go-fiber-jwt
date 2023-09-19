@@ -100,7 +100,7 @@ func (h *AccountHandler) UpdateProfile(c *fiber.Ctx) error {
 		return c.Status(errD.Code).JSON(errD)
 	}
 
-	user, err := h.userUsecase.Update(c, payload)
+	user, err := h.userUsecase.UpdateProfile(c, payload)
 	if err != nil {
 		return c.Status(err.Code).JSON(err)
 	}

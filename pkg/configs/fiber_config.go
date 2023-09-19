@@ -27,12 +27,12 @@ func FiberConfig() fiber.Config {
 		JSONDecoder: json.Unmarshal,
 		Views:       engine,
 		// ViewsLayout: "layouts/main",
-		BodyLimit: 10 * 1024 * 1024, // the default limit of 10MB
+		BodyLimit: 5 * 1024 * 1024, // the default limit: 4MB
 		// Override default error handler
-		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			// Status code defaults to 500
 			code := fiber.StatusInternalServerError
-
+			// fmt.Println(err)
 			// Retrieve the custom status code if it's a *fiber.Error
 			var e *fiber.Error
 			if errors.As(err, &e) {
@@ -40,18 +40,18 @@ func FiberConfig() fiber.Config {
 			}
 
 			// Send custom error page
-			// err = ctx.Status(code).SendFile(fmt.Sprintf("./%d.html", code))
+			// err = c.Status(code).SendFile(fmt.Sprintf("./%d.html", code))
 			// if err != nil {
 			// 	// In case the SendFile fails
-			// 	return ctx.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
+			// 	return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
 			// }
 
 			// Set Content-Type: text/plain; charset=utf-8
-			ctx.Set(fiber.HeaderContentType, fiber.MIMETextPlainCharsetUTF8)
+			c.Set(fiber.HeaderContentType, fiber.MIMETextPlainCharsetUTF8)
 
 			// Return status code with error message
-			// return ctx.Status(code).SendString(err.Error())
-			return ctx.Status(code).JSON(fiber.Map{
+			// return c.Status(code).SendString(err.Error())
+			return c.Status(code).JSON(fiber.Map{
 				"code":    code,
 				"message": err.Error(),
 			})

@@ -77,7 +77,7 @@ type UserUsecase interface {
 	ForgotPasswordOTP(ctx context.Context, payload OTPInput) (string, *fiber.Error)
 	ResetPassword(ctx context.Context, payload ResetPasswordInput) *fiber.Error
 	ChangePassword(ctx context.Context, md User, payload ChangePasswordInput) *fiber.Error
-	Update(c *fiber.Ctx, payload UpdateProfileInput) (User, *fiber.Error)
+	UpdateProfile(c *fiber.Ctx, payload UpdateProfileInput) (User, *fiber.Error)
 	// Delete(ctx context.Context, md User) *fiber.Error
 	UploadPhotoProfile(c *fiber.Ctx, md User) *fiber.Error
 	RequestDeleteAccount(c *fiber.Ctx, md User) *fiber.Error
