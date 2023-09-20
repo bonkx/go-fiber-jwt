@@ -1,6 +1,9 @@
 package models
 
 import (
+	"encoding/json"
+	"fmt"
+	"os"
 	"time"
 
 	"gorm.io/gorm"
@@ -20,4 +23,16 @@ type UserProfile struct {
 	PhoneVerifiedAt   *time.Time `json:"phone_verified_at"`
 	PhoneVerifiedOtp  string     `json:"phone_verified_otp"`
 	Status            Status     `gorm:"foreignkey:StatusID"`
+}
+
+func (md UserProfile) MarshalJSON() ([]byte, error) {
+	type Alias UserProfile
+	aux := struct {
+		Alias
+		Photo string `json:"photo"`
+	}{
+		Alias: (Alias)(md),
+		Photo: fmt.Sprintf("%s/%s", os.Getenv("CLIENT_ORIGIN"), md.Photo),
+	}
+	return json.Marshal(aux)
 }

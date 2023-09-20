@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"html"
 	"strings"
@@ -30,6 +31,18 @@ type User struct {
 	VerifiedAt       *time.Time `json:"verified_at"`
 
 	UserProfile UserProfile `gorm:"foreignkey:UserID"`
+}
+
+func (md User) MarshalJSON() ([]byte, error) {
+	type Alias User // NOTE this will not copy methods present in Struct
+	aux := struct {
+		Name string
+		Alias
+	}{
+		Alias: (Alias)(md),
+		Name:  fmt.Sprintf("%s %s", md.FirstName, md.LastName),
+	}
+	return json.Marshal(aux)
 }
 
 func (user *User) BeforeCreate(*gorm.DB) error {

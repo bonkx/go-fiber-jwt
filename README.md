@@ -44,15 +44,15 @@ With pattern Handler, Usecase, Repository
   - [ ] Custom representation
   - [ ] Edit Data
   - [ ] Delete Data
-- [ ] Preload Model (Associations in Go/Serializer in Django)
-- [ ] Protected API (Auth Token)
+- [x] Preload Model (Associations Struct)
+- [x] Struct MarshalJSON
 - [ ] Open API with API KEY middleware
 - [ ] Upload Files
 - [ ] Upload Videos
 - [ ] Create thumbnail from videos
-- [ ] Upload Images and Compress Image with libvips
-- [ ] Create thumbnail from image
-- [ ] Image Processing with [libvips](https://www.libvips.org/)
+- [x] Upload Images and Compress Image with libvips
+- [x] Create thumbnail from image
+- [x] Image Processing with [libvips](https://www.libvips.org/)
 
 ---
 
