@@ -55,7 +55,7 @@ func getJSONField(data interface{}, snp string, fieldname string) error {
 	return nil
 }
 
-func ValidateStruct(data interface{}) []*ErrorResponse {
+func ValidateStruct(data interface{}) []*ErrorDetailsResponse {
 	validate = validator.New()
 
 	en := en.New()
@@ -70,12 +70,12 @@ func ValidateStruct(data interface{}) []*ErrorResponse {
 	en_translations.RegisterDefaultTranslations(validate, trans)
 	id_translations.RegisterDefaultTranslations(validate, trans)
 
-	var errors []*ErrorResponse
+	var errors []*ErrorDetailsResponse
 	err := validate.Struct(data)
 
 	if err != nil {
 		for _, err := range err.(validator.ValidationErrors) {
-			var element ErrorResponse
+			var element ErrorDetailsResponse
 			translatedErr := fmt.Errorf(err.Translate(trans))
 			element.Field = err.StructNamespace()
 			// log.Println(err.StructNamespace())
@@ -98,7 +98,7 @@ func ValidateStruct(data interface{}) []*ErrorResponse {
 	return errors
 }
 
-func ValidatePhoneNumber(phone_number string) []*ErrorResponse {
+func ValidatePhoneNumber(phone_number string) []*ErrorDetailsResponse {
 	type Phone struct {
 		Phone string `validate:"e164"`
 	}
@@ -116,7 +116,7 @@ func ValidatePhoneNumber(phone_number string) []*ErrorResponse {
 	en_translations.RegisterDefaultTranslations(validate, trans)
 	id_translations.RegisterDefaultTranslations(validate, trans)
 
-	var errors []*ErrorResponse
+	var errors []*ErrorDetailsResponse
 	// validate.RegisterValidation("e164", ValidateMyVal)
 
 	s := Phone{Phone: phone_number}
@@ -124,7 +124,7 @@ func ValidatePhoneNumber(phone_number string) []*ErrorResponse {
 
 	if err != nil {
 		for _, err := range err.(validator.ValidationErrors) {
-			var element ErrorResponse
+			var element ErrorDetailsResponse
 			translatedErr := fmt.Errorf(err.Translate(trans))
 			element.Field = err.StructNamespace()
 			// log.Println(err.StructNamespace())

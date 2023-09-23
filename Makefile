@@ -5,3 +5,5 @@ run:
 	docker-compose up --remove-orphans
 down:
 	docker-compose down
+swag:
+	swag init --parseDependency --parseInternal

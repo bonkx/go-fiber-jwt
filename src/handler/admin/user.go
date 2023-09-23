@@ -62,7 +62,7 @@ func (h *AdminUserHandler) RestoreUser(c *fiber.Ctx) error {
 	// form POST validations
 	errors := models.ValidateStruct(payload)
 	if errors != nil {
-		errD := models.ErrorDetailsResponse{
+		errD := models.ResponseHTTP{
 			Code:    fiber.ErrUnprocessableEntity.Code,
 			Message: fiber.ErrUnprocessableEntity.Message,
 			Errors:  errors,

@@ -1,18 +1,25 @@
 package models
 
 type ErrorDetailsResponse struct {
-	Code    int              `json:"code"`
-	Message string           `json:"message"`
-	Errors  []*ErrorResponse `json:"errors"`
-}
-
-type ErrorResponse struct {
 	Field   string
 	Tag     string
 	Message string
 }
 
-type ValueError struct {
-	Code int
-	Err  error
+// ResponseHTTP represents response body of this API
+type ResponseHTTP struct {
+	Code    int                     `json:"code"`
+	Message string                  `json:"message"`
+	Error   *string                 `json:"error,omitempty"`
+	Errors  []*ErrorDetailsResponse `json:"errors,omitempty"`
+}
+
+type ResponseError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+type ResponseSuccess struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
 }

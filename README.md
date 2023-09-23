@@ -36,16 +36,16 @@ With pattern Handler, Usecase, Repository
   - [x] Deletion Account with OTP
   - [x] Recover deleted account (Admin role)
   - [x] User Activity with interval (last login at, ip address in middleware)
+- [x] Golang Swagger
 - [ ] CRUD
   - [ ] Pagination with custom Paginate [pagination-using-gorm-scopes](https://dev.to/rafaelgfirmino/pagination-using-gorm-scopes-3k5f)
   - [ ] Redis List Pagination
   - [ ] Sort + Search function in List Data
   - [ ] Create Data
-  - [ ] Custom representation
   - [ ] Edit Data
   - [ ] Delete Data
 - [x] Preload Model (Associations Struct)
-- [x] Struct MarshalJSON
+- [x] Struct MarshalJSON (Custom representation)
 - [ ] Open API with API KEY middleware
 - [ ] Upload Files
 - [ ] Upload Videos
