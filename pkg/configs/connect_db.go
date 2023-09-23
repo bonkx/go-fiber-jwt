@@ -34,11 +34,12 @@ func ConnectDB(config *Config) {
 	fmt.Println("🚀 Connected Successfully to the Database")
 
 	// DROP TABLES
-	// DB.Migrator().DropTable(
-	// 	&models.User{},
-	// 	&models.UserProfile{},
-	// 	&models.OTPRequest{},
-	// )
+	DB.Migrator().DropTable(
+	// &models.User{},
+	// &models.UserProfile{},
+	// &models.OTPRequest{},
+	// &models.Product{},
+	)
 
 	// Migrate the database
 	DB.AutoMigrate(

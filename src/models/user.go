@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html"
+	"myapp/pkg/response"
 	"strings"
 	"time"
 
@@ -30,7 +31,8 @@ type User struct {
 	VerificationCode string     `json:"verification_code"`
 	VerifiedAt       *time.Time `json:"verified_at"`
 
-	UserProfile UserProfile `gorm:"foreignkey:UserID"`
+	UserProfile UserProfile `gorm:"foreignkey:UserID;constraint:OnDelete:CASCADE;" json:"user_profile,omitempty"`
+	Products    []Product   `gorm:"foreignkey:UserID;constraint:OnDelete:CASCADE;" json:"products,omitempty"`
 }
 
 func (md User) MarshalJSON() ([]byte, error) {
@@ -66,6 +68,14 @@ func (user *User) AfterCreate(tx *gorm.DB) (err error) {
 	return
 }
 
+func (u *User) BeforeDelete(tx *gorm.DB) (err error) {
+	if u.UserProfile.Role == "admin" {
+		// return errors.New("admin user not allowed to delete")
+		return fmt.Errorf("admin user not allowed to delete")
+	}
+	return
+}
+
 func (user *User) ValidatePassword(password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 }
@@ -79,6 +89,7 @@ func (user *User) HashPassword(password string) (string, error) {
 }
 
 type UserUsecase interface {
+	// USECASE
 	Register(ctx context.Context, payload RegisterInput) *fiber.Error
 	Login(ctx context.Context, payload LoginInput) (Token, *fiber.Error)
 	RefreshToken(ctx context.Context, payload RefreshTokenInput) (Token, *fiber.Error)
@@ -95,18 +106,21 @@ type UserUsecase interface {
 	UploadPhotoProfile(c *fiber.Ctx, md User) *fiber.Error
 	RequestDeleteAccount(c *fiber.Ctx, md User) *fiber.Error
 	DeleteAccount(c *fiber.Ctx, otp string) *fiber.Error
+	ListUser(c *fiber.Ctx) (*response.Pagination, []*User, *fiber.Error)
 
 	// ADMIN ROLE
 	RestoreUser(c *fiber.Ctx, email string) *fiber.Error
 	DeleteUser(c *fiber.Ctx, id uint) *fiber.Error
+	PermanentDeleteUser(c *fiber.Ctx, id uint) *fiber.Error
 }
 
 type UserRepository interface {
-	// funtions
+	// FUNTIONS
 	DeleteAuthRedis(givenUuid string) (int64, error)
 	GeneratePairToken(userID uint) (Token, error)
 	SendVerificationEmail(md User, code string) error
 
+	// REPOS
 	Register(md User) *fiber.Error
 	Login(md User) (Token, *fiber.Error)
 	RefreshToken(payload RefreshTokenInput) (Token, *fiber.Error)
@@ -124,12 +138,14 @@ type UserRepository interface {
 	UsernameExists(username string) *fiber.Error
 	Create(md User) *fiber.Error
 	Update(md User) (User, *fiber.Error)
-	Delete(md User) *fiber.Error
 	FindUserByIdentity(identity string) (User, *fiber.Error)
 	FindUserByEmail(email string) (User, *fiber.Error)
 	FindUserById(id uint) (User, *fiber.Error)
+	ListUser(param response.ParamsPagination) (*response.Pagination, []*User, *fiber.Error)
 
 	// ADMIN ROLE
 	FindDeletedUserByEmail(email string) (User, *fiber.Error)
 	RestoreUser(id uint) *fiber.Error
+	Delete(md User) *fiber.Error
+	PermanentDelete(md User) *fiber.Error
 }

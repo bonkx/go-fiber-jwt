@@ -40,3 +40,8 @@ func StringToUint(s string) uint {
 	i, _ := strconv.Atoi(s)
 	return uint(i)
 }
+
+func IntToString(i int64) string {
+	s := strconv.Itoa(int(i))
+	return s
+}

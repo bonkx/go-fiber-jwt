@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"myapp/pkg/configs"
 	"myapp/pkg/helpers"
+	"myapp/pkg/response"
 	"myapp/pkg/utils"
 	"myapp/src/models"
 	"strconv"
@@ -15,6 +16,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/thanhpk/randstr"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type UserRepository struct {
@@ -26,6 +28,44 @@ func NewUserRepository(Conn *gorm.DB) models.UserRepository {
 	return &UserRepository{Conn}
 }
 
+// ListUser implements models.UserRepository.
+func (r *UserRepository) ListUser(param response.ParamsPagination) (*response.Pagination, []*models.User, *fiber.Error) {
+	var data []*models.User
+	// var count int64
+	var pagination response.Pagination
+
+	// get Associations User
+	db := r.DB.Preload("UserProfile.Status")
+
+	if param.Search != "" {
+		// search data based on first_name, last_name, email
+		db = db.Where("first_name ILIKE ?", "%"+param.Search+"%").
+			Or("last_name ILIKE ?", "%"+param.Search+"%").
+			Or("email ILIKE ?", "%"+param.Search+"%")
+	}
+
+	// 	fill all params pagination
+	pagination.Sort = param.SortQuery
+	pagination.Page = param.Page
+	pagination.Limit = param.Limit
+
+	// with no pagination (support searching and sorting)
+	if param.NoPage != "" {
+		// log.Println("no_page")
+		db.Order(param.SortQuery).Find(&data)
+		return nil, data, nil
+	}
+
+	err := db.Scopes(response.Paginate(data, &pagination, db)).Find(&data).Error
+	if err != nil {
+		return nil, nil, fiber.NewError(500, err.Error())
+	}
+
+	pagination.Data = data
+
+	return &pagination, nil, nil
+}
+
 // RestoreUser implements models.UserRepository.
 func (r *UserRepository) RestoreUser(id uint) *fiber.Error {
 	fmt.Println("RestoreUser ==========")
@@ -34,6 +74,20 @@ func (r *UserRepository) RestoreUser(id uint) *fiber.Error {
 	if err != nil {
 		return fiber.NewError(500, err.Error())
 	}
+	return nil
+}
+
+// PermanentDelete implements models.UserRepository.
+func (r *UserRepository) PermanentDelete(user models.User) *fiber.Error {
+	// delete user
+	err := r.DB.Select(clause.Associations).Unscoped().Delete(&user).Error
+	if err != nil {
+		return fiber.NewError(500, err.Error())
+	}
+
+	// goroutine - delete all otpotpR by email
+	go r.deleteAllOTPRequestByEmail(user.Email)
+
 	return nil
 }
 

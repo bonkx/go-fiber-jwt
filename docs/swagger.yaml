@@ -55,6 +55,34 @@ definitions:
     required:
     - otp
     type: object
+  models.Product:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      description:
+        type: string
+      id:
+        type: integer
+      image:
+        type: string
+      is_enable:
+        type: boolean
+      price:
+        type: number
+      title:
+        minLength: 4
+        type: string
+      updatedAt:
+        type: string
+      userID:
+        description: foreignkey User
+        type: integer
+    required:
+    - price
+    - title
+    type: object
   models.RefreshTokenInput:
     properties:
       refresh_token:
@@ -164,6 +192,10 @@ definitions:
         type: string
       last_name:
         type: string
+      products:
+        items:
+          $ref: '#/definitions/models.Product'
+        type: array
       updatedAt:
         type: string
       userProfile:

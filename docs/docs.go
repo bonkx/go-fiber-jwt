@@ -851,6 +851,47 @@ const docTemplate = `{
                 }
             }
         },
+        "models.Product": {
+            "type": "object",
+            "required": [
+                "price",
+                "title"
+            ],
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "is_enable": {
+                    "type": "boolean"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "title": {
+                    "type": "string",
+                    "minLength": 4
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userID": {
+                    "description": "foreignkey User",
+                    "type": "integer"
+                }
+            }
+        },
         "models.RefreshTokenInput": {
             "type": "object",
             "required": [
@@ -1013,6 +1054,12 @@ const docTemplate = `{
                 },
                 "last_name": {
                     "type": "string"
+                },
+                "products": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Product"
+                    }
                 },
                 "updatedAt": {
                     "type": "string"

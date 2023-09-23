@@ -27,6 +27,12 @@ func FiberMiddleware(a *fiber.App) {
 		// Format:     "${time} | ${status} |${latency} | ${ip} | ${method} | ${path} | ${resBody}\n",
 		TimeFormat: time.RFC1123,
 		TimeZone:   "Asia/Jakarta",
+		// Done: func(c *fiber.Ctx, logString []byte) {
+		// 	if c.Response().StatusCode() != fiber.StatusOK {
+		// 		// reporter.SendToSlack(logString)
+		// 		log.Println(logString)
+		// 	}
+		// },
 	}
 
 	faviconConfig := favicon.Config{

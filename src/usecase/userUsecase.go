@@ -2,8 +2,10 @@ package usecase
 
 import (
 	"context"
+	"myapp/pkg/response"
 	"myapp/pkg/utils"
 	"myapp/src/models"
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -18,6 +20,58 @@ func NewUserUsecase(userRepo models.UserRepository) models.UserUsecase {
 	return &UserUsecase{
 		userRepo: userRepo,
 	}
+}
+
+// ListUser implements models.UserUsecase.
+func (uc *UserUsecase) ListUser(c *fiber.Ctx) (*response.Pagination, []*models.User, *fiber.Error) {
+	// 	Parse the query parameters
+	search := c.Query("search")
+	sortBy := c.Query("sort", "id|asc")
+	page := c.Query("page", "1")
+	limit := c.Query("per_page", "10")
+
+	// Convert the page and limit to integers
+	pageInt, _ := strconv.Atoi(page)
+	limitInt, _ := strconv.Atoi(limit)
+
+	sortQuery, errSort := utils.ValidateAndReturnSortQuery(sortBy)
+	// log.Print(sortQuery)
+	if errSort != nil {
+		errD := fiber.NewError(fiber.StatusInternalServerError, errSort.Error())
+		return nil, nil, errD
+	}
+
+	// make param pagination struct
+	pagParam := response.ParamsPagination{
+		Page:      pageInt,
+		Limit:     limitInt,
+		SortQuery: sortQuery,
+		Search:    search,
+		NoPage:    c.Query("no_page"),
+	}
+
+	pagination, data, err := uc.userRepo.ListUser(pagParam)
+	if err != nil {
+		return nil, nil, err
+	}
+	return pagination, data, nil
+}
+
+// PermanentDeleteUser implements models.UserUsecase.
+func (uc *UserUsecase) PermanentDeleteUser(c *fiber.Ctx, id uint) *fiber.Error {
+	// get user data
+	user, err := uc.userRepo.FindUserById(id)
+	if err != nil {
+		return err
+	}
+
+	// permanent deleted user
+	err = uc.userRepo.PermanentDelete(user)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // DeleteUser implements models.UserUsecase.
@@ -110,7 +164,7 @@ func (uc *UserUsecase) UploadPhotoProfile(c *fiber.Ctx, user models.User) *fiber
 			}
 
 			// update user photo path
-			user.UserProfile.Photo = imageUrl
+			user.UserProfile.Photo = &imageUrl
 		}
 	}
 
@@ -147,7 +201,7 @@ func (uc *UserUsecase) UpdateProfile(c *fiber.Ctx, payload models.UpdateProfileI
 			}
 
 			// update user photo path
-			user.UserProfile.Photo = imageUrl
+			user.UserProfile.Photo = &imageUrl
 		}
 	}
 

@@ -17,9 +17,11 @@ func APIRoutes(a *fiber.App, db *gorm.DB) {
 
 	// register All REPOSITORY
 	repoUser := _repo.NewUserRepository(db)
+	repoProduct := _repo.NewProductRepository(db)
 
 	// register All USECASE
 	ucUser := _useCase.NewUserUsecase(repoUser)
+	ucProduct := _useCase.NewProductUsecase(repoProduct, repoUser)
 
 	// ROUTES
 	// Auth route
@@ -30,6 +32,7 @@ func APIRoutes(a *fiber.App, db *gorm.DB) {
 	// ADMIN Routes
 	admin := v1.Group("/admin")
 	_admin.NewAdminUserHandler(admin, ucUser)
+	_admin.NewAdminProductHandler(admin, ucProduct)
 	// test routes
 	_handler.NewEmailHandler(a, ucUser)
 }

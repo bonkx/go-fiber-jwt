@@ -46,41 +46,6 @@ func JWTAuthMiddleware() fiber.Handler {
 
 		SaveUserLogs(c, user)
 
-		// now := time.Now()
-
-		// lastLoginID := fmt.Sprintf("LastLoginID++%s", userid)
-		// errRedisMap := fiber.Map{
-		// 	"code":    fiber.ErrInternalServerError.Code,
-		// 	"error":   fiber.ErrInternalServerError.Message,
-		// 	"message": "RedisClient error",
-		// }
-
-		// // Delete Redis
-		// // _, err = configs.RedisClient.Del(ctxTodo, lastLoginID).Result()
-		// // if err != nil {
-		// // 	return nil
-		// // }
-
-		// lastLog, errRedis := configs.RedisClient.Get(ctxTodo, lastLoginID).Result()
-		// if errRedis == redis.Nil {
-		// 	// create redis instance
-		// 	fmt.Println("RedisClient.Set")
-		// 	errRedisSet := configs.RedisClient.Set(ctxTodo, lastLoginID, now, (1)*time.Hour).Err()
-		// 	if errRedisSet != nil {
-		// 		return c.Status(fiber.StatusUnauthorized).JSON(errRedisMap)
-		// 	}
-		// }
-
-		// if lastLog == "" {
-		// 	// fmt.Println("Save new LOG")
-		// 	// update user last login and IP
-		// 	err = configs.DB.Model(&user).Select("LastLoginAt", "LastLoginIp").
-		// 		Updates(models.User{LastLoginAt: &now, LastLoginIp: c.IP()}).Error
-		// 	if err != nil {
-		// 		log.Fatal(fmt.Sprintf(err.Error()))
-		// 	}
-		// }
-
 		c.Locals("user", user)
 		c.Locals("token_uuid", tokenClaims.TokenUuid)
 
@@ -129,6 +94,8 @@ func AdminAuthMiddleware() fiber.Handler {
 				"message": "Oops, You Are Not Allowed to Access it!",
 			})
 		}
+
+		SaveUserLogs(c, user)
 
 		c.Locals("user", user)
 		c.Locals("token_uuid", tokenClaims.TokenUuid)

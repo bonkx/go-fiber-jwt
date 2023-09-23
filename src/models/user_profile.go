@@ -14,7 +14,7 @@ type UserProfile struct {
 	UserID            uint
 	StatusID          uint
 	Phone             string     `json:"phone" gorm:"size:20;"`
-	Photo             string     `json:"photo"`
+	Photo             *string    `json:"photo"`
 	Role              string     `json:"role" gorm:"size:100;"`
 	LoginWithSosmed   bool       `json:"login_with_sosmed" gorm:"default:false"`
 	LoginWithSosmedAt *time.Time `json:"login_with_sosmed_at"`
@@ -27,12 +27,17 @@ type UserProfile struct {
 
 func (md UserProfile) MarshalJSON() ([]byte, error) {
 	type Alias UserProfile
+	var photo *string = md.Photo
+	if photo != nil {
+		*photo = fmt.Sprintf("%s/%s", os.Getenv("CLIENT_ORIGIN"), *md.Photo)
+	}
+
 	aux := struct {
 		Alias
-		Photo string `json:"photo"`
+		Photo *string `json:"photo"`
 	}{
 		Alias: (Alias)(md),
-		Photo: fmt.Sprintf("%s/%s", os.Getenv("CLIENT_ORIGIN"), md.Photo),
+		Photo: photo,
 	}
 	return json.Marshal(aux)
 }

@@ -38,9 +38,9 @@ With pattern Handler, Usecase, Repository
   - [x] User Activity with interval (last login at, ip address in middleware)
 - [x] Golang Swagger
 - [ ] CRUD
-  - [ ] Pagination with custom Paginate [pagination-using-gorm-scopes](https://dev.to/rafaelgfirmino/pagination-using-gorm-scopes-3k5f)
+  - [x] Pagination with custom Paginate [pagination-using-gorm-scopes](https://dev.to/rafaelgfirmino/pagination-using-gorm-scopes-3k5f)
   - [ ] Redis List Pagination
-  - [ ] Sort + Search function in List Data
+  - [x] Sort + Search function in List Data
   - [ ] Create Data
   - [ ] Edit Data
   - [ ] Delete Data
