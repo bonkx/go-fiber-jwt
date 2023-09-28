@@ -26,7 +26,7 @@ func NewUserUsecase(userRepo models.UserRepository) models.UserUsecase {
 func (uc *UserUsecase) ListUser(c *fiber.Ctx) (*response.Pagination, []*models.User, *fiber.Error) {
 	// 	Parse the query parameters
 	search := c.Query("search")
-	sortBy := c.Query("sort", "id|asc")
+	sortBy := c.Query("sort", "id|desc")
 	page := c.Query("page", "1")
 	limit := c.Query("per_page", "10")
 
@@ -117,7 +117,7 @@ func (uc *UserUsecase) RestoreUser(c *fiber.Ctx, email string) *fiber.Error {
 func (uc *UserUsecase) DeleteAccount(c *fiber.Ctx, otp string) *fiber.Error {
 	user, errLocal := c.Locals("user").(models.User)
 	if !errLocal {
-		return fiber.NewError(500, "Unable to extract user from request context for unknown reason")
+		return fiber.NewError(500, utils.ERR_CURRENT_USER_NOT_FOUND)
 	}
 
 	// find OTP Request
@@ -182,7 +182,7 @@ func (uc *UserUsecase) UpdateProfile(c *fiber.Ctx, payload models.UpdateProfileI
 	// user := models.User{}
 	user, errLocal := c.Locals("user").(models.User)
 	if !errLocal {
-		return user, fiber.NewError(500, "Unable to extract user from request context for unknown reason")
+		return user, fiber.NewError(500, utils.ERR_CURRENT_USER_NOT_FOUND)
 	}
 
 	// MultipartForm POST

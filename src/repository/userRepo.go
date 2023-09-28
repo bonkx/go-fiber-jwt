@@ -243,7 +243,7 @@ func (r *UserRepository) DeleteToken(authD *models.AccessDetails) *fiber.Error {
 
 	//When the record is deleted, the return value is 1
 	if deletedAt != 1 || deletedRt != 1 {
-		return fiber.NewError(500, "something went wrong")
+		return fiber.NewError(500, utils.ERR_SOMETHING_WENT_WRONG)
 	}
 	return nil
 }

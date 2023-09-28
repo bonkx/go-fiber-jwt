@@ -17,10 +17,10 @@ func NewAdminProductHandler(r fiber.Router, uc models.ProductUsecase) {
 	}
 
 	// ROUTES
-	acc := r.Group("/products")
+	api := r.Group("/products")
 
 	// private API
-	acc.Post("/populate", middleware.AdminAuthMiddleware(), handler.PopulateProducts)
+	api.Post("/populate", middleware.AdminAuthMiddleware(), handler.PopulateProducts)
 
 }
 
@@ -38,12 +38,9 @@ func (h *AdminProductHandler) PopulateProducts(c *fiber.Ctx) error {
 	}
 
 	// form POST validations
-	errors := models.ValidateStruct(payload)
-	if errors != nil {
-		res.Code = fiber.ErrUnprocessableEntity.Code
-		res.Message = fiber.ErrUnprocessableEntity.Message
-		res.Errors = errors
-		return c.Status(res.Code).JSON(res)
+	errD := models.ValidateStruct(payload)
+	if errD.Errors != nil {
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	err := h.pUsecase.PopulateProducts(payload.UserID, payload.Amount)

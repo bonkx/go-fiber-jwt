@@ -39,9 +39,8 @@ With pattern Handler, Usecase, Repository
 - [x] Golang Swagger
 - [ ] CRUD
   - [x] Pagination with custom Paginate [pagination-using-gorm-scopes](https://dev.to/rafaelgfirmino/pagination-using-gorm-scopes-3k5f)
-  - [ ] Redis List Pagination
   - [x] Sort + Search function in List Data
-  - [ ] Create Data
+  - [x] Create Data
   - [ ] Edit Data
   - [ ] Delete Data
 - [x] Preload Model (Associations Struct)

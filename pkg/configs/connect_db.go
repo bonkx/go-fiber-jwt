@@ -33,30 +33,6 @@ func ConnectDB(config *Config) {
 
 	fmt.Println("🚀 Connected Successfully to the Database")
 
-	// DROP TABLES
-	DB.Migrator().DropTable(
-	// &models.User{},
-	// &models.UserProfile{},
-	// &models.OTPRequest{},
-	// &models.Product{},
-	)
-
-	// Migrate the database
-	DB.AutoMigrate(
-	// &models.User{},
-	// &models.UserProfile{},
-	// &models.OTPRequest{},
-	// &models.Product{},
-	// &models.Fact{},
-	)
-
-	fmt.Println("👍 Migration complete")
-
-	// Initialize Status
-	// DB.AutoMigrate(&models.Status{})
-	// var status = []models.Status{{Name: "Active"}, {Name: "Inactive"}, {Name: "Pending"}, {Name: "Suspended"}}
-	// DB.Create(&status)
-
 	setUpDBConnection(DB)
 }
 
@@ -66,4 +42,29 @@ func setUpDBConnection(db *gorm.DB) {
 
 func GetDBConnection() *gorm.DB {
 	return DB
+}
+
+func MigrateDB() {
+	// DROP TABLES
+	// DB.Migrator().DropTable(
+	// &models.User{},
+	// &models.UserProfile{},
+	// &models.OTPRequest{},
+	// &models.Product{},
+	// )
+
+	// Migrate the database
+	// DB.AutoMigrate(
+	// &models.User{},
+	// &models.UserProfile{},
+	// &models.OTPRequest{},
+	// &models.Product{},
+	// )
+
+	// fmt.Println("👍 Migration complete")
+
+	// Initialize Status
+	// DB.AutoMigrate(&models.Status{})
+	// var status = []models.Status{{Name: "Active"}, {Name: "Inactive"}, {Name: "Pending"}, {Name: "Suspended"}}
+	// DB.Create(&status)
 }

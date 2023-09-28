@@ -28,6 +28,7 @@ func APIRoutes(a *fiber.App, db *gorm.DB) {
 	_handler.NewAuthHandler(v1, ucUser)
 	// Account route
 	_handler.NewAccountHandler(v1, ucUser)
+	_handler.NewProductHandler(v1, ucProduct)
 
 	// ADMIN Routes
 	admin := v1.Group("/admin")

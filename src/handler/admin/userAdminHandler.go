@@ -20,13 +20,13 @@ func NewAdminUserHandler(r fiber.Router, uc models.UserUsecase) {
 	// ROUTES
 	r.Get("/me", middleware.AdminAuthMiddleware(), handler.GetMe)
 
-	acc := r.Group("/users")
+	users := r.Group("/users")
 
-	acc.Get("", middleware.AdminAuthMiddleware(), handler.ListUser)
+	users.Get("", middleware.AdminAuthMiddleware(), handler.ListUser)
 
-	acc.Delete("/:id", middleware.AdminAuthMiddleware(), handler.DeleteUser)
-	acc.Delete("/:id/unscoped", middleware.AdminAuthMiddleware(), handler.PermanentDeleteUser)
-	acc.Post("/restore", middleware.AdminAuthMiddleware(), handler.RestoreUser)
+	users.Delete("/:id", middleware.AdminAuthMiddleware(), handler.DeleteUser)
+	users.Delete("/:id/unscoped", middleware.AdminAuthMiddleware(), handler.PermanentDeleteUser)
+	users.Post("/restore", middleware.AdminAuthMiddleware(), handler.RestoreUser)
 }
 
 func (h *AdminUserHandler) GetMe(c *fiber.Ctx) error {
@@ -111,12 +111,9 @@ func (h *AdminUserHandler) RestoreUser(c *fiber.Ctx) error {
 	}
 
 	// form POST validations
-	errors := models.ValidateStruct(payload)
-	if errors != nil {
-		res.Code = fiber.ErrUnprocessableEntity.Code
-		res.Message = fiber.ErrUnprocessableEntity.Message
-		res.Errors = errors
-		return c.Status(res.Code).JSON(res)
+	errD := models.ValidateStruct(payload)
+	if errD.Errors != nil {
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	err := h.userUsecase.RestoreUser(c, payload.Email)

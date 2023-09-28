@@ -65,12 +65,9 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	}
 
 	// form POST validation
-	errors := models.ValidateStruct(payload)
-	if errors != nil {
-		res.Code = fiber.StatusUnprocessableEntity
-		res.Message = fiber.ErrUnprocessableEntity.Message
-		res.Errors = errors
-		return c.Status(res.Code).JSON(res)
+	errD := models.ValidateStruct(payload)
+	if errD.Errors != nil {
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	if payload.Phone != "" {
@@ -124,12 +121,9 @@ func (h *AuthHandler) RequestVerifyCode(c *fiber.Ctx) error {
 	}
 
 	// form POST validations
-	errors := models.ValidateStruct(payload)
-	if errors != nil {
-		res.Code = fiber.StatusUnprocessableEntity
-		res.Message = fiber.ErrUnprocessableEntity.Message
-		res.Errors = errors
-		return c.Status(res.Code).JSON(res)
+	errD := models.ValidateStruct(payload)
+	if errD.Errors != nil {
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	err := h.userUsecase.ResendVerificationCode(c.Context(), payload.Email)
@@ -169,12 +163,9 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	}
 
 	// form POST validation
-	errors := models.ValidateStruct(payload)
-	if errors != nil {
-		res.Code = fiber.ErrUnprocessableEntity.Code
-		res.Message = fiber.ErrUnprocessableEntity.Message
-		res.Errors = errors
-		return c.Status(res.Code).JSON(res)
+	errD := models.ValidateStruct(payload)
+	if errD.Errors != nil {
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	token, err := h.userUsecase.Login(c.Context(), payload)
@@ -220,12 +211,9 @@ func (h *AuthHandler) RefreshAccessToken(c *fiber.Ctx) error {
 	}
 
 	// form POST validations
-	errors := models.ValidateStruct(payload)
-	if errors != nil {
-		res.Code = fiber.StatusUnprocessableEntity
-		res.Message = fiber.ErrUnprocessableEntity.Message
-		res.Errors = errors
-		return c.Status(res.Code).JSON(res)
+	errD := models.ValidateStruct(payload)
+	if errD.Errors != nil {
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	token, err := h.userUsecase.RefreshToken(c.Context(), payload)
@@ -299,12 +287,9 @@ func (h *AuthHandler) ForgotPassword(c *fiber.Ctx) error {
 	}
 
 	// form POST validations
-	errors := models.ValidateStruct(payload)
-	if errors != nil {
-		res.Code = fiber.StatusUnprocessableEntity
-		res.Message = fiber.ErrUnprocessableEntity.Message
-		res.Errors = errors
-		return c.Status(res.Code).JSON(res)
+	errD := models.ValidateStruct(payload)
+	if errD.Errors != nil {
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	err := h.userUsecase.ForgotPassword(c.Context(), payload)
@@ -344,12 +329,9 @@ func (h *AuthHandler) ForgotPasswordOTP(c *fiber.Ctx) error {
 	}
 
 	// form POST validations
-	errors := models.ValidateStruct(payload)
-	if errors != nil {
-		res.Code = fiber.StatusUnprocessableEntity
-		res.Message = fiber.ErrUnprocessableEntity.Message
-		res.Errors = errors
-		return c.Status(res.Code).JSON(res)
+	errD := models.ValidateStruct(payload)
+	if errD.Errors != nil {
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	refNo, err := h.userUsecase.ForgotPasswordOTP(c.Context(), payload)
@@ -398,12 +380,9 @@ func (h *AuthHandler) ResetPassword(c *fiber.Ctx) error {
 	}
 
 	// form POST validations
-	errors := models.ValidateStruct(payload)
-	if errors != nil {
-		res.Code = fiber.ErrUnprocessableEntity.Code
-		res.Message = fiber.ErrUnprocessableEntity.Message
-		res.Errors = errors
-		return c.Status(res.Code).JSON(res)
+	errD := models.ValidateStruct(payload)
+	if errD.Errors != nil {
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	err := h.userUsecase.ResetPassword(c.Context(), payload)

@@ -16,6 +16,7 @@ func init() {
 	}
 	configs.ConnectDB(&envConfig)
 	configs.ConnectRedis(&envConfig)
+	configs.MigrateDB()
 }
 
 // @title Fiber Example API

@@ -76,9 +76,24 @@ definitions:
         type: string
       updatedAt:
         type: string
+      user:
+        $ref: '#/definitions/models.User'
       userID:
         description: foreignkey User
         type: integer
+    required:
+    - price
+    - title
+    type: object
+  models.ProductInput:
+    properties:
+      description:
+        type: string
+      price:
+        type: number
+      title:
+        minLength: 4
+        type: string
     required:
     - price
     - title
@@ -198,7 +213,7 @@ definitions:
         type: array
       updatedAt:
         type: string
-      userProfile:
+      user_profile:
         $ref: '#/definitions/models.UserProfile'
       username:
         type: string
@@ -242,6 +257,23 @@ definitions:
       updatedAt:
         type: string
       userID:
+        type: integer
+    type: object
+  response.Pagination:
+    properties:
+      count:
+        description: |-
+          NextPage     *string     `json:"next"`
+          PreviousPage *string     `json:"previous"`
+        type: integer
+      data: {}
+      limit:
+        type: integer
+      page:
+        type: integer
+      sort:
+        type: string
+      total_pages:
         type: integer
     type: object
 host: localhost:8000
@@ -737,6 +769,114 @@ paths:
       summary: Reset Password
       tags:
       - Auth
+  /v1/products:
+    get:
+      consumes:
+      - application/json
+      description: List of all Products
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Pagination'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: List of Product
+      tags:
+      - Products
+    post:
+      consumes:
+      - application/json
+      description: Create new product
+      parameters:
+      - description: Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.ProductInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Product'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/models.ResponseHTTP'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Create Product
+      tags:
+      - Products
+  /v1/products/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get details of product
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Product'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: GetProduct
+      tags:
+      - Products
+  /v1/products/my-product:
+    get:
+      consumes:
+      - application/json
+      description: List of all my Products
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Pagination'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: My Product
+      tags:
+      - Products
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.

@@ -86,12 +86,9 @@ func (h *AccountHandler) ChangePassword(c *fiber.Ctx) error {
 	}
 
 	// form POST validations
-	errors := models.ValidateStruct(payload)
-	if errors != nil {
-		res.Code = fiber.StatusUnprocessableEntity
-		res.Message = fiber.ErrUnprocessableEntity.Message
-		res.Errors = errors
-		return c.Status(res.Code).JSON(res)
+	errD := models.ValidateStruct(payload)
+	if errD.Errors != nil {
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	user, errLocal := c.Locals("user").(models.User)
@@ -140,12 +137,9 @@ func (h *AccountHandler) UpdateProfile(c *fiber.Ctx) error {
 	}
 
 	// form POST validations
-	errors := models.ValidateStruct(payload)
-	if errors != nil {
-		res.Code = fiber.StatusUnprocessableEntity
-		res.Message = fiber.ErrUnprocessableEntity.Message
-		res.Errors = errors
-		return c.Status(res.Code).JSON(res)
+	errD := models.ValidateStruct(payload)
+	if errD.Errors != nil {
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	user, err := h.userUsecase.UpdateProfile(c, payload)
@@ -258,12 +252,9 @@ func (h *AccountHandler) DeleteAccount(c *fiber.Ctx) error {
 	}
 
 	// form POST validations
-	errors := models.ValidateStruct(payload)
-	if errors != nil {
-		res.Code = fiber.StatusUnprocessableEntity
-		res.Message = fiber.ErrUnprocessableEntity.Message
-		res.Errors = errors
-		return c.Status(res.Code).JSON(res)
+	errD := models.ValidateStruct(payload)
+	if errD.Errors != nil {
+		return c.Status(errD.Code).JSON(errD)
 	}
 
 	err := h.userUsecase.DeleteAccount(c, payload.Otp)
