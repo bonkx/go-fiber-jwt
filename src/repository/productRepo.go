@@ -21,25 +21,43 @@ func NewProductRepository(Conn *gorm.DB) models.ProductRepository {
 	return &ProductRepository{Conn}
 }
 
+// Delete implements models.ProductRepository.
+func (r *ProductRepository) Delete(obj models.Product) *fiber.Error {
+	// delete obj
+	err := r.DB.Delete(&obj).Error
+	if err != nil {
+		return fiber.NewError(500, err.Error())
+	}
+
+	return nil
+}
+
+// Update implements models.ProductRepository.
+func (r *ProductRepository) Update(product models.Product) (models.Product, *fiber.Error) {
+	err := r.DB.UpdateColumns(&product).Error
+	if err != nil {
+		return product, fiber.NewError(500, err.Error())
+	}
+
+	return product, nil
+}
+
 // Create implements models.ProductRepository.
-func (r *ProductRepository) Create(product *models.Product) (*models.Product, *fiber.Error) {
+func (r *ProductRepository) Create(product models.Product) (models.Product, *fiber.Error) {
 	result := r.DB.Create(&product)
 	if result.Error != nil {
-		return nil, fiber.NewError(500, result.Error.Error())
+		return product, fiber.NewError(500, result.Error.Error())
 	}
 
 	return product, nil
 }
 
 // GetProduct implements models.ProductRepository.
-func (r *ProductRepository) GetProduct(id uint) (*models.Product, *fiber.Error) {
-	var obj *models.Product
-	result := r.DB.Preload("User.UserProfile.Status").Where("id = ?", id).Find(&obj)
-	if result.Error != nil {
-		return nil, fiber.NewError(500, result.Error.Error())
-	}
+func (r *ProductRepository) GetProduct(id uint) (models.Product, *fiber.Error) {
+	var obj models.Product
+	result := r.DB.Preload("User.UserProfile.Status").First(&obj, id)
 	if result.RowsAffected == 0 {
-		return nil, fiber.NewError(404, utils.ERR_DATA_NOT_FOUND)
+		return obj, fiber.NewError(404, utils.ERR_DATA_NOT_FOUND)
 	}
 	return obj, nil
 }
@@ -51,8 +69,6 @@ func (r *ProductRepository) MyProduct(user models.User, param response.ParamsPag
 	var pagination response.Pagination
 
 	db := r.DB.Preload("User.UserProfile.Status").Where("user_id = ?", user.ID)
-	// db := r.DB.Preload("User").Where("user_id = ?", user.ID)
-	// db := r.DB.Preload(clause.Associations).Where("user_id = ?", user.ID)
 
 	if param.Search != "" {
 		// search data based on title, description

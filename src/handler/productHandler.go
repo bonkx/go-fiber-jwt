@@ -2,6 +2,7 @@ package handler
 
 import (
 	"myapp/pkg/middleware"
+	"myapp/pkg/utils"
 	"myapp/src/models"
 
 	"github.com/gofiber/fiber/v2"
@@ -22,6 +23,8 @@ func NewProductHandler(r fiber.Router, uc models.ProductUsecase) {
 	products.Get("", middleware.JWTAuthMiddleware(), handler.ListProduct)
 	products.Get("/:id", middleware.JWTAuthMiddleware(), handler.GetProduct)
 	products.Post("", middleware.JWTAuthMiddleware(), handler.CreateProduct)
+	products.Put("/:id", middleware.JWTAuthMiddleware(), handler.UpdateProduct)
+	products.Delete("/:id", middleware.JWTAuthMiddleware(), handler.DeleteProduct)
 }
 
 // ListProduct
@@ -109,8 +112,10 @@ func (h *ProductHandler) GetProduct(c *fiber.Ctx) error {
 // @Description  Create new product
 // @Tags         Products
 // @Accept       json
+// @Accept       multipart/form-data
 // @Produce      json
-// @Param 		 body body models.ProductInput true "Body"
+// @Param 		 body formData models.ProductInput true "Body"
+// @Param 		 file formData file false "File to upload" format(multipart/form-data)
 // @Success      200  {object}  models.Product
 // @Failure      400  {object}  models.ResponseError
 // @Failure      422  {object}  models.ResponseHTTP
@@ -144,4 +149,80 @@ func (h *ProductHandler) CreateProduct(c *fiber.Ctx) error {
 	}
 
 	return c.Status(res.Code).JSON(obj)
+}
+
+// UpdateProduct
+// @Summary      Update Product
+// @Description  Update product's data
+// @Tags         Products
+// @Accept       json
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        id   path      int  true  "Product ID"
+// @Param 		 body formData models.ProductInput true "Body"
+// @Param 		 file formData file false "File to upload" format(multipart/form-data)
+// @Success      200  {object}  models.Product
+// @Failure      404  {object}  models.ResponseError
+// @Failure      422  {object}  models.ResponseHTTP
+// @Failure      500  {object}  models.ResponseError
+// @Security 	 BearerAuth
+// @Router       /v1/products/{id} [put]
+func (h *ProductHandler) UpdateProduct(c *fiber.Ctx) error {
+	var payload models.ProductInput
+	res := models.ResponseHTTP{
+		Code:    fiber.StatusOK,
+		Message: "Request has been processed successfully",
+	}
+
+	if err := c.BodyParser(&payload); err != nil {
+		res.Code = fiber.StatusBadRequest
+		res.Message = err.Error()
+		return c.Status(res.Code).JSON(res)
+	}
+
+	// form POST validation
+	errD := models.ValidateStruct(payload)
+	if errD.Errors != nil {
+		return c.Status(errD.Code).JSON(errD)
+	}
+
+	id := utils.StringToUint(c.Params("id"))
+
+	obj, err := h.uCase.Update(c, id, payload)
+	if err != nil {
+		res.Code = err.Code
+		res.Message = err.Message
+		return c.Status(res.Code).JSON(res)
+	}
+
+	return c.Status(res.Code).JSON(obj)
+}
+
+// DeleteProduct
+// @Summary      Delete Product
+// @Description  Delete product's data
+// @Tags         Products
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Product ID"
+// @Success      200  {object}  models.ResponseSuccess
+// @Failure      404  {object}  models.ResponseError
+// @Failure      500  {object}  models.ResponseError
+// @Security 	 BearerAuth
+// @Router       /v1/products/{id} [delete]
+func (h *ProductHandler) DeleteProduct(c *fiber.Ctx) error {
+	res := models.ResponseHTTP{
+		Code:    fiber.StatusOK,
+		Message: "Request has been processed successfully",
+	}
+
+	id := utils.StringToUint(c.Params("id"))
+
+	if err := h.uCase.Delete(c, id); err != nil {
+		res.Code = err.Code
+		res.Message = err.Message
+		return c.Status(res.Code).JSON(res)
+	}
+
+	return c.Status(res.Code).JSON(res)
 }

@@ -59,8 +59,10 @@ type ProductUsecase interface {
 	// USECASE
 	MyProduct(c *fiber.Ctx) (*response.Pagination, *fiber.Error)
 	ListProduct(c *fiber.Ctx) (*response.Pagination, *fiber.Error)
-	GetProduct(c *fiber.Ctx) (*Product, *fiber.Error)
-	Create(c *fiber.Ctx, payload ProductInput) (*Product, *fiber.Error)
+	GetProduct(c *fiber.Ctx) (Product, *fiber.Error)
+	Create(c *fiber.Ctx, payload ProductInput) (Product, *fiber.Error)
+	Update(c *fiber.Ctx, id uint, payload ProductInput) (Product, *fiber.Error)
+	Delete(c *fiber.Ctx, id uint) *fiber.Error
 
 	// ADMIN ROLE
 	PopulateProducts(userID uint, n int) *fiber.Error
@@ -72,8 +74,10 @@ type ProductRepository interface {
 	// REPOS
 	MyProduct(user User, param response.ParamsPagination) (*response.Pagination, *fiber.Error)
 	ListProduct(param response.ParamsPagination) (*response.Pagination, *fiber.Error)
-	GetProduct(id uint) (*Product, *fiber.Error)
-	Create(md *Product) (*Product, *fiber.Error)
+	GetProduct(id uint) (Product, *fiber.Error)
+	Create(md Product) (Product, *fiber.Error)
+	Update(md Product) (Product, *fiber.Error)
+	Delete(md Product) *fiber.Error
 
 	// ADMIN ROLE
 	PopulateProducts(userID uint, n int) *fiber.Error

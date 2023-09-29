@@ -22,16 +22,50 @@ func NewProductUsecase(product models.ProductRepository, user models.UserReposit
 	}
 }
 
-// Create implements models.ProductUsecase.
-func (uc *ProductUsecase) Create(c *fiber.Ctx, payload models.ProductInput) (*models.Product, *fiber.Error) {
+// Delete implements models.ProductUsecase.
+func (uc *ProductUsecase) Delete(c *fiber.Ctx, id uint) *fiber.Error {
 	user, errLocal := c.Locals("user").(models.User)
 	if !errLocal {
-		return nil, fiber.NewError(500, utils.ERR_CURRENT_USER_NOT_FOUND)
+		return fiber.NewError(500, utils.ERR_CURRENT_USER_NOT_FOUND)
 	}
 
-	// fill the owner
-	obj := &models.Product{
-		UserID: user.ID,
+	// get data
+	obj, err := uc.pRepo.GetProduct(id)
+	if err != nil {
+		return err
+	}
+
+	// check the owner of data
+	if obj.UserID != user.ID {
+		return fiber.NewError(403, utils.ERR_FORBIDDEN_UPDATE)
+	}
+
+	// deleted obj
+	err = uc.pRepo.Delete(obj)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Update implements models.ProductUsecase.
+func (uc *ProductUsecase) Update(c *fiber.Ctx, id uint, payload models.ProductInput) (models.Product, *fiber.Error) {
+	obj := models.Product{}
+	// get product data
+	obj, err := uc.pRepo.GetProduct(id)
+	if err != nil {
+		return obj, err
+	}
+
+	user, errLocal := c.Locals("user").(models.User)
+	if !errLocal {
+		return obj, fiber.NewError(500, utils.ERR_CURRENT_USER_NOT_FOUND)
+	}
+
+	// check the owner of data
+	if obj.UserID != user.ID {
+		return obj, fiber.NewError(403, utils.ERR_FORBIDDEN_UPDATE)
 	}
 
 	// MultipartForm POST
@@ -43,7 +77,50 @@ func (uc *ProductUsecase) Create(c *fiber.Ctx, payload models.ProductInput) (*mo
 			// // Save the files to disk:
 			imageUrl, errFile := utils.ImageUpload(c, file, "products")
 			if errFile != nil {
-				return nil, fiber.NewError(500, errFile.Error())
+				return obj, fiber.NewError(500, errFile.Error())
+			}
+
+			// update user photo path
+			obj.Image = &imageUrl
+		}
+	}
+
+	// fill update data
+	obj.Title = payload.Title
+	obj.Description = payload.Description
+	obj.Price = payload.Price
+
+	// do update user
+	obj, err = uc.pRepo.Update(obj)
+	if err != nil {
+		return obj, err
+	}
+
+	return obj, nil
+}
+
+// Create implements models.ProductUsecase.
+func (uc *ProductUsecase) Create(c *fiber.Ctx, payload models.ProductInput) (models.Product, *fiber.Error) {
+	var obj models.Product
+
+	user, errLocal := c.Locals("user").(models.User)
+	if !errLocal {
+		return obj, fiber.NewError(500, utils.ERR_CURRENT_USER_NOT_FOUND)
+	}
+
+	// fill the owner
+	obj.UserID = user.ID
+
+	// MultipartForm POST
+	if form, err := c.MultipartForm(); err == nil {
+		files := form.File["image"]
+
+		// Loop through files:
+		for _, file := range files {
+			// // Save the files to disk:
+			imageUrl, errFile := utils.ImageUpload(c, file, "products")
+			if errFile != nil {
+				return obj, fiber.NewError(500, errFile.Error())
 			}
 
 			// update user photo path
@@ -59,19 +136,19 @@ func (uc *ProductUsecase) Create(c *fiber.Ctx, payload models.ProductInput) (*mo
 	// save the data
 	obj, err := uc.pRepo.Create(obj)
 	if err != nil {
-		return nil, err
+		return obj, err
 	}
 
 	return obj, nil
 }
 
 // GetProduct implements models.ProductUsecase.
-func (uc *ProductUsecase) GetProduct(c *fiber.Ctx) (*models.Product, *fiber.Error) {
+func (uc *ProductUsecase) GetProduct(c *fiber.Ctx) (models.Product, *fiber.Error) {
 	id := utils.StringToUint(c.Params("id"))
 
 	obj, err := uc.pRepo.GetProduct(id)
 	if err != nil {
-		return nil, err
+		return obj, err
 	}
 
 	return obj, nil

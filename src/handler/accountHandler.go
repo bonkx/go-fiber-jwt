@@ -161,8 +161,6 @@ func (h *AccountHandler) UpdateProfile(c *fiber.Ctx) error {
 // @Produce      json
 // @Param 		 file formData file true "File to upload" format(multipart/form-data)
 // @Success      200  {object}  models.ResponseSuccess
-// @Failure      400  {object}  models.ResponseError
-// @Failure      422  {object}  models.ResponseHTTP
 // @Failure      500  {object}  models.ResponseError
 // @Security 	 BearerAuth
 // @Router       /v1/accounts/photo [post]
@@ -196,8 +194,6 @@ func (h *AccountHandler) UploadPhotoProfile(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  models.ResponseSuccess
-// @Failure      400  {object}  models.ResponseError
-// @Failure      422  {object}  models.ResponseHTTP
 // @Failure      500  {object}  models.ResponseError
 // @Security 	 BearerAuth
 // @Router       /v1/accounts/delete [post]

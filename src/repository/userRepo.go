@@ -181,7 +181,7 @@ func (r *UserRepository) FindOTPRequest(otp string) (models.OTPRequest, *fiber.E
 
 	result := r.DB.First(&otpR, "otp = ?", otp)
 	if result.RowsAffected == 0 {
-		return otpR, fiber.NewError(422, "OTP code doesn't exists.")
+		return otpR, fiber.NewError(404, "OTP code doesn't exists.")
 	}
 	return otpR, nil
 }
@@ -327,11 +327,7 @@ func (r *UserRepository) VerificationEmail(code string) *fiber.Error {
 // EmailExists implements models.UserRepository.
 func (r *UserRepository) EmailExists(email string) *fiber.Error {
 	var user models.User
-	result := r.DB.Where("email = ?", strings.ToLower(email)).Find(&user)
-	if result.Error != nil {
-		return fiber.NewError(500, result.Error.Error())
-	}
-
+	result := r.DB.First(&user, "email = ?", strings.ToLower(email))
 	if result.RowsAffected != 0 {
 		return fiber.NewError(422, "Email already registered, please use another one!")
 	}
@@ -341,11 +337,7 @@ func (r *UserRepository) EmailExists(email string) *fiber.Error {
 // UsernameExists implements models.UserRepository.
 func (r *UserRepository) UsernameExists(username string) *fiber.Error {
 	var user models.User
-	result := r.DB.Where("username = ?", strings.ToLower(username)).Find(&user)
-	if result.Error != nil {
-		return fiber.NewError(500, result.Error.Error())
-	}
-
+	result := r.DB.Find(&user, "username = ?", strings.ToLower(username))
 	if result.RowsAffected != 0 {
 		return fiber.NewError(422, "Username already registered, please use another one!")
 	}
@@ -360,10 +352,7 @@ func (r *UserRepository) Create(md models.User) *fiber.Error {
 // FindDeletedUserByEmail implements models.UserRepository.
 func (r *UserRepository) FindDeletedUserByEmail(email string) (models.User, *fiber.Error) {
 	var user models.User
-	result := r.DB.Unscoped().Where("email = ?", email).Find(&user)
-	if result.Error != nil {
-		return user, fiber.NewError(500, result.Error.Error())
-	}
+	result := r.DB.Unscoped().Find(&user, "email = ?", email)
 	if result.RowsAffected == 0 {
 		return user, fiber.NewError(404, "Account doesn't exists.")
 	}
@@ -373,11 +362,7 @@ func (r *UserRepository) FindDeletedUserByEmail(email string) (models.User, *fib
 // FindUserById implements models.UserRepository.
 func (r *UserRepository) FindUserById(id uint) (models.User, *fiber.Error) {
 	var user models.User
-	result := r.DB.Preload("UserProfile.Status").Where("ID = ?", id).Find(&user)
-	if result.Error != nil {
-		return user, fiber.NewError(500, result.Error.Error())
-	}
-
+	result := r.DB.Preload("UserProfile.Status").Find(&user, id)
 	if result.RowsAffected == 0 {
 		return user, fiber.NewError(422, "Invalid ID or account doesn't exists.")
 	}
@@ -387,11 +372,7 @@ func (r *UserRepository) FindUserById(id uint) (models.User, *fiber.Error) {
 // FindUserByEmail implements models.UserRepository.
 func (r *UserRepository) FindUserByEmail(email string) (models.User, *fiber.Error) {
 	var user models.User
-	result := r.DB.Where("email = ?", strings.ToLower(email)).Find(&user)
-	if result.Error != nil {
-		return user, fiber.NewError(500, result.Error.Error())
-	}
-
+	result := r.DB.First(&user, "email = ?", strings.ToLower(email))
 	if result.RowsAffected == 0 {
 		return user, fiber.NewError(422, "Invalid email or account doesn't exists.")
 	}
@@ -402,11 +383,7 @@ func (r *UserRepository) FindUserByEmail(email string) (models.User, *fiber.Erro
 // FindUserByIdentity implements models.UserRepository.
 func (r *UserRepository) FindUserByIdentity(identity string) (models.User, *fiber.Error) {
 	var user models.User
-	result := r.DB.Where("username = ?", strings.ToLower(identity)).Or("email = ?", strings.ToLower(identity)).Find(&user)
-	if result.Error != nil {
-		return user, fiber.NewError(500, result.Error.Error())
-	}
-
+	result := r.DB.Where("username = ?", strings.ToLower(identity)).Or("email = ?", strings.ToLower(identity)).First(&user)
 	if result.RowsAffected == 0 {
 		return user, fiber.NewError(422, "Invalid Email or Account doesn't exists.")
 	}

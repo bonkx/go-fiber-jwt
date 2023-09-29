@@ -85,19 +85,6 @@ definitions:
     - price
     - title
     type: object
-  models.ProductInput:
-    properties:
-      description:
-        type: string
-      price:
-        type: number
-      title:
-        minLength: 4
-        type: string
-    required:
-    - price
-    - title
-    type: object
   models.RefreshTokenInput:
     properties:
       refresh_token:
@@ -372,14 +359,6 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.ResponseSuccess'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/models.ResponseError'
-        "422":
-          description: Unprocessable Entity
-          schema:
-            $ref: '#/definitions/models.ResponseHTTP'
         "500":
           description: Internal Server Error
           schema:
@@ -430,14 +409,6 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.ResponseSuccess'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/models.ResponseError'
-        "422":
-          description: Unprocessable Entity
-          schema:
-            $ref: '#/definitions/models.ResponseHTTP'
         "500":
           description: Internal Server Error
           schema:
@@ -793,14 +764,26 @@ paths:
     post:
       consumes:
       - application/json
+      - multipart/form-data
       description: Create new product
       parameters:
-      - description: Body
-        in: body
-        name: body
+      - in: formData
+        name: description
+        type: string
+      - in: formData
+        name: price
         required: true
-        schema:
-          $ref: '#/definitions/models.ProductInput'
+        type: number
+      - in: formData
+        minLength: 4
+        name: title
+        required: true
+        type: string
+      - description: File to upload
+        format: multipart/form-data
+        in: formData
+        name: file
+        type: file
       produces:
       - application/json
       responses:
@@ -826,6 +809,36 @@ paths:
       tags:
       - Products
   /v1/products/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete product's data
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ResponseSuccess'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Delete Product
+      tags:
+      - Products
     get:
       consumes:
       - application/json
@@ -854,6 +867,58 @@ paths:
       security:
       - BearerAuth: []
       summary: GetProduct
+      tags:
+      - Products
+    put:
+      consumes:
+      - application/json
+      - multipart/form-data
+      description: Update product's data
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - in: formData
+        name: description
+        type: string
+      - in: formData
+        name: price
+        required: true
+        type: number
+      - in: formData
+        minLength: 4
+        name: title
+        required: true
+        type: string
+      - description: File to upload
+        format: multipart/form-data
+        in: formData
+        name: file
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Product'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/models.ResponseHTTP'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Update Product
       tags:
       - Products
   /v1/products/my-product:
