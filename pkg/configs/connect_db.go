@@ -2,6 +2,7 @@ package configs
 
 import (
 	"fmt"
+	"myapp/src/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -27,6 +28,9 @@ func ConnectDB(config *Config) {
 		Logger: logger.Default.LogMode(loggerLevel),
 	})
 
+	// enable UUID support
+	DB.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"")
+
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -47,19 +51,21 @@ func GetDBConnection() *gorm.DB {
 func MigrateDB() {
 	// DROP TABLES
 	// DB.Migrator().DropTable(
-	// &models.User{},
-	// &models.UserProfile{},
-	// &models.OTPRequest{},
-	// &models.Product{},
+	// 	// &models.User{},
+	// 	// &models.UserProfile{},
+	// 	// &models.OTPRequest{},
+	// 	// &models.Product{},
+	// 	&models.MyDrive{},
 	// )
 
 	// Migrate the database
-	// DB.AutoMigrate(
-	// &models.User{},
-	// &models.UserProfile{},
-	// &models.OTPRequest{},
-	// &models.Product{},
-	// )
+	DB.AutoMigrate(
+		// &models.User{},
+		// &models.UserProfile{},
+		// &models.OTPRequest{},
+		// &models.Product{},
+		&models.MyDrive{},
+	)
 
 	// fmt.Println("👍 Migration complete")
 

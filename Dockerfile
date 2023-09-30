@@ -1,4 +1,4 @@
-FROM golang:1.20.8-alpine3.18 as dev
+FROM golang:1.20.8-alpine3.18
 
 RUN set -x -o pipefail \
     && apk update \

@@ -118,26 +118,26 @@ type UserRepository interface {
 	// FUNTIONS
 	DeleteAuthRedis(givenUuid string) (int64, error)
 	GeneratePairToken(userID uint) (Token, error)
-	SendVerificationEmail(md User, code string) error
+	SendVerificationEmail(obj User, code string) error
 
 	// REPOS
-	Register(md User) *fiber.Error
-	Login(md User) (Token, *fiber.Error)
+	Register(obj User) *fiber.Error
+	Login(obj User) (Token, *fiber.Error)
 	RefreshToken(payload RefreshTokenInput) (Token, *fiber.Error)
 	DeleteToken(authD *AccessDetails) *fiber.Error
 	VerificationEmail(code string) *fiber.Error
-	ResendVerificationCode(md User) *fiber.Error
-	RequestOTPEmail(md User, message string) *fiber.Error
+	ResendVerificationCode(obj User) *fiber.Error
+	RequestOTPEmail(obj User, message string) *fiber.Error
 	FindOTPRequest(otp string) (OTPRequest, *fiber.Error)
 	FindReferenceOTPRequest(refNo string) (OTPRequest, *fiber.Error)
-	VerifyOTP(md OTPRequest) (string, *fiber.Error)
-	ResetPassword(md User) *fiber.Error
-	ChangePassword(md User) *fiber.Error
+	VerifyOTP(obj OTPRequest) (string, *fiber.Error)
+	ResetPassword(obj User) *fiber.Error
+	ChangePassword(obj User) *fiber.Error
 
 	EmailExists(email string) *fiber.Error
 	UsernameExists(username string) *fiber.Error
-	Create(md User) *fiber.Error
-	Update(md User) (User, *fiber.Error)
+	Create(obj User) *fiber.Error
+	Update(obj User) (User, *fiber.Error)
 	FindUserByIdentity(identity string) (User, *fiber.Error)
 	FindUserByEmail(email string) (User, *fiber.Error)
 	FindUserById(id uint) (User, *fiber.Error)
@@ -146,6 +146,6 @@ type UserRepository interface {
 	// ADMIN ROLE
 	FindDeletedUserByEmail(email string) (User, *fiber.Error)
 	RestoreUser(id uint) *fiber.Error
-	Delete(md User) *fiber.Error
-	PermanentDelete(md User) *fiber.Error
+	Delete(obj User) *fiber.Error
+	PermanentDelete(obj User) *fiber.Error
 }

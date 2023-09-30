@@ -75,7 +75,7 @@ func (uc *ProductUsecase) Update(c *fiber.Ctx, id uint, payload models.ProductIn
 		// Loop through files:
 		for _, file := range files {
 			// // Save the files to disk:
-			imageUrl, errFile := utils.ImageUpload(c, file, "products")
+			imageUrl, errFile := utils.ImageUpload(file, "products")
 			if errFile != nil {
 				return obj, fiber.NewError(500, errFile.Error())
 			}
@@ -118,7 +118,7 @@ func (uc *ProductUsecase) Create(c *fiber.Ctx, payload models.ProductInput) (mod
 		// Loop through files:
 		for _, file := range files {
 			// // Save the files to disk:
-			imageUrl, errFile := utils.ImageUpload(c, file, "products")
+			imageUrl, errFile := utils.ImageUpload(file, "products")
 			if errFile != nil {
 				return obj, fiber.NewError(500, errFile.Error())
 			}

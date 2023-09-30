@@ -46,7 +46,7 @@ With pattern Handler, Usecase, Repository
 - [x] Preload Model (Associations Struct)
 - [x] Struct MarshalJSON (Custom representation)
 - [ ] Open API with API KEY middleware
-- [ ] Upload Files
+- [x] Upload Files
 - [ ] Upload Videos
 - [ ] Create thumbnail from videos
 - [x] Upload Images and Compress Image with libvips

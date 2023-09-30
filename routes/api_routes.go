@@ -18,17 +18,18 @@ func APIRoutes(a *fiber.App, db *gorm.DB) {
 	// register All REPOSITORY
 	repoUser := _repo.NewUserRepository(db)
 	repoProduct := _repo.NewProductRepository(db)
+	repoMyDrive := _repo.NewMyDriveRepository(db)
 
 	// register All USECASE
 	ucUser := _useCase.NewUserUsecase(repoUser)
 	ucProduct := _useCase.NewProductUsecase(repoProduct, repoUser)
+	ucMyDrive := _useCase.NewMyDriveUsecase(repoMyDrive, repoUser)
 
 	// ROUTES
-	// Auth route
 	_handler.NewAuthHandler(v1, ucUser)
-	// Account route
 	_handler.NewAccountHandler(v1, ucUser)
 	_handler.NewProductHandler(v1, ucProduct)
+	_handler.NewMyDriveHandler(v1, ucMyDrive)
 
 	// ADMIN Routes
 	admin := v1.Group("/admin")

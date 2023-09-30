@@ -29,7 +29,7 @@ func createFolder(dirname string) error {
 	return nil
 }
 
-func ImageUpload(c *fiber.Ctx, fileHeader *multipart.FileHeader, uploadTo string) (string, error) {
+func ImageUpload(fileHeader *multipart.FileHeader, uploadTo string) (string, error) {
 
 	file, err := fileHeader.Open()
 	if err != nil {
@@ -58,7 +58,7 @@ func ImageUpload(c *fiber.Ctx, fileHeader *multipart.FileHeader, uploadTo string
 
 	if filetype.IsImage(buffer) {
 		// if image
-		filename, err = imageProcessing(buffer, 90, filePath)
+		filename, err = imageProcessing(buffer, filePath)
 		if err != nil {
 			return "", errors.New(err.Error())
 		}
@@ -104,7 +104,7 @@ func FileUpload(c *fiber.Ctx, fileHeader *multipart.FileHeader, uploadTo string)
 
 	if filetype.IsImage(buffer) {
 		// if image
-		filename, err = imageProcessing(buffer, 90, filePath)
+		filename, err = imageProcessing(buffer, filePath)
 		if err != nil {
 			return "", errors.New(err.Error())
 		}
@@ -131,13 +131,13 @@ func FileUpload(c *fiber.Ctx, fileHeader *multipart.FileHeader, uploadTo string)
 }
 
 // The mime type of the image is changed, it is compressed and then saved in the specified folder.
-func imageProcessing(buffer []byte, quality int, dirname string) (string, error) {
+func imageProcessing(buffer []byte, dirname string) (string, error) {
 	fn := strings.Replace(uuid.New().String(), "-", "", -1)
 	filename := fn + ".webp"
 	thumbnail_name := fn + "_thumbnail.webp"
 
 	options := bimg.Options{
-		Quality:       quality,
+		Quality:       90,
 		StripMetadata: false,
 	}
 

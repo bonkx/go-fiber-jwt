@@ -75,9 +75,9 @@ type ProductRepository interface {
 	MyProduct(user User, param response.ParamsPagination) (*response.Pagination, *fiber.Error)
 	ListProduct(param response.ParamsPagination) (*response.Pagination, *fiber.Error)
 	GetProduct(id uint) (Product, *fiber.Error)
-	Create(md Product) (Product, *fiber.Error)
-	Update(md Product) (Product, *fiber.Error)
-	Delete(md Product) *fiber.Error
+	Create(obj Product) (Product, *fiber.Error)
+	Update(obj Product) (Product, *fiber.Error)
+	Delete(obj Product) *fiber.Error
 
 	// ADMIN ROLE
 	PopulateProducts(userID uint, n int) *fiber.Error

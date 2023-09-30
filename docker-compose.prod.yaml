@@ -1,13 +1,18 @@
 version: "3.9"
 
 services:
+  nginx:
+    build: "./nginx"
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+    restart: "on-failure"
+
   web:
     build: 
       context: .
-      dockerfile: Dockerfile
-    command: air
-    volumes:
-      - .:/app
+      dockerfile: Dockerfile.prod
     env_file:
       - .env
     ports:
@@ -15,6 +20,7 @@ services:
     depends_on:
       - db
       - redis
+    restart: "on-failure"
 
   db:
     image: postgres:14-alpine
@@ -26,11 +32,13 @@ services:
       - "54321:5432"
     volumes:
       - postgres-db:/var/lib/postgresql/data
+    restart: "on-failure"
 
   redis:
     image: redis:alpine
     expose:
       - "6379"
+    restart: "on-failure"
 
 volumes:
   postgres-db:

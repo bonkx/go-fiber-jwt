@@ -158,7 +158,7 @@ func (uc *UserUsecase) UploadPhotoProfile(c *fiber.Ctx, user models.User) *fiber
 			// => "avatar1.jpeg" 6472 "image/jpeg"
 
 			// // Save the files to disk:
-			imageUrl, errFile := utils.ImageUpload(c, file, "users")
+			imageUrl, errFile := utils.ImageUpload(file, "users")
 			if errFile != nil {
 				return fiber.NewError(500, errFile.Error())
 			}
@@ -195,7 +195,7 @@ func (uc *UserUsecase) UpdateProfile(c *fiber.Ctx, payload models.UpdateProfileI
 			// => "avatar1.jpeg" 6472 "image/jpeg"
 
 			// // Save the files to disk:
-			imageUrl, errFile := utils.ImageUpload(c, file, "users")
+			imageUrl, errFile := utils.ImageUpload(file, "users")
 			if errFile != nil {
 				return user, fiber.NewError(500, errFile.Error())
 			}

@@ -345,7 +345,7 @@ func (r *UserRepository) UsernameExists(username string) *fiber.Error {
 }
 
 // Create implements models.UserRepository.
-func (r *UserRepository) Create(md models.User) *fiber.Error {
+func (r *UserRepository) Create(obj models.User) *fiber.Error {
 	panic("unimplemented")
 }
 
