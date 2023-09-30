@@ -61,8 +61,8 @@ type ProductUsecase interface {
 	ListProduct(c *fiber.Ctx) (*response.Pagination, *fiber.Error)
 	GetProduct(c *fiber.Ctx) (Product, *fiber.Error)
 	Create(c *fiber.Ctx, payload ProductInput) (Product, *fiber.Error)
-	Update(c *fiber.Ctx, id uint, payload ProductInput) (Product, *fiber.Error)
-	Delete(c *fiber.Ctx, id uint) *fiber.Error
+	Update(c *fiber.Ctx, payload ProductInput) (Product, *fiber.Error)
+	Delete(c *fiber.Ctx) *fiber.Error
 
 	// ADMIN ROLE
 	PopulateProducts(userID uint, n int) *fiber.Error

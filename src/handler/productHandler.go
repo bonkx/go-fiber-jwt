@@ -2,7 +2,6 @@ package handler
 
 import (
 	"myapp/pkg/middleware"
-	"myapp/pkg/utils"
 	"myapp/src/models"
 
 	"github.com/gofiber/fiber/v2"
@@ -186,9 +185,7 @@ func (h *ProductHandler) UpdateProduct(c *fiber.Ctx) error {
 		return c.Status(errD.Code).JSON(errD)
 	}
 
-	id := utils.StringToUint(c.Params("id"))
-
-	obj, err := h.uCase.Update(c, id, payload)
+	obj, err := h.uCase.Update(c, payload)
 	if err != nil {
 		res.Code = err.Code
 		res.Message = err.Message
@@ -216,9 +213,7 @@ func (h *ProductHandler) DeleteProduct(c *fiber.Ctx) error {
 		Message: "Request has been processed successfully",
 	}
 
-	id := utils.StringToUint(c.Params("id"))
-
-	if err := h.uCase.Delete(c, id); err != nil {
+	if err := h.uCase.Delete(c); err != nil {
 		res.Code = err.Code
 		res.Message = err.Message
 		return c.Status(res.Code).JSON(res)

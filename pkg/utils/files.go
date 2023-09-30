@@ -220,3 +220,41 @@ func fileProcessing(c *fiber.Ctx, file *multipart.FileHeader, dirname string) (s
 
 	return filename, nil
 }
+
+func GetThumbnail(fileName string) *string {
+	dirPath := filepath.Dir(fileName)
+	fileExt := filepath.Ext(fileName)
+
+	filename := filepath.Base(fileName)
+	// fmt.Println("filename: ", filename)
+	// fmt.Println("fileNameOnly: ", fileNameOnly)
+	fileNameOnly := FileNameWithoutExtSliceNotation(filename)
+
+	thumbnailName := fmt.Sprintf("%s/%s_thumbnail%s", dirPath, fileNameOnly, fileExt)
+
+	return &thumbnailName
+}
+
+func FileNameWithoutExtSliceNotation(fileName string) string {
+	return fileName[:len(fileName)-len(filepath.Ext(fileName))]
+}
+
+func RemoveFileSilence(fileUrl string) error {
+	originFile := fileUrl
+	// fmt.Println("originFile: ", originFile)
+	thumbnailName := GetThumbnail(fileUrl)
+	// fmt.Println("thumbnailName: ", thumbnailName)
+
+	// Using Remove() function
+	// errF := os.Remove(originFile)
+	// if errF != nil {
+	// 	return errors.New(errF.Error())
+	// }
+
+	// Removing file from server
+	os.Remove(originFile)
+	// remove thumbnail
+	os.Remove(*thumbnailName)
+
+	return nil
+}

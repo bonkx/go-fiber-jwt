@@ -34,6 +34,16 @@ definitions:
       tag:
         type: string
     type: object
+  models.FileType:
+    enum:
+    - I
+    - F
+    - V
+    type: string
+    x-enum-varnames:
+    - ImageFile
+    - FileFile
+    - VideoFile
   models.LoginInput:
     properties:
       email:
@@ -45,6 +55,26 @@ definitions:
     required:
     - email
     - password
+    type: object
+  models.MyDrive:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      file_type:
+        $ref: '#/definitions/models.FileType'
+      id:
+        type: string
+      link:
+        type: string
+      name:
+        type: string
+      updatedAt:
+        type: string
+      userID:
+        description: foreignkey User
+        type: integer
     type: object
   models.OTPInput:
     properties:
@@ -740,6 +770,159 @@ paths:
       summary: Reset Password
       tags:
       - Auth
+  /v1/drives:
+    get:
+      consumes:
+      - application/json
+      description: List of all files
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Pagination'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: List of My Drive
+      tags:
+      - My Drive
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload new file
+      parameters:
+      - description: File to upload
+        format: multipart/form-data
+        in: formData
+        name: files
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.MyDrive'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Upload File
+      tags:
+      - My Drive
+  /v1/drives/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete file
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Delete file
+      tags:
+      - My Drive
+    get:
+      consumes:
+      - application/json
+      description: Get file
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.MyDrive'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Get file
+      tags:
+      - My Drive
+    put:
+      consumes:
+      - application/json
+      description: Rename file
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - in: formData
+        minLength: 4
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.MyDrive'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/models.ResponseHTTP'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Rename file
+      tags:
+      - My Drive
   /v1/products:
     get:
       consumes:

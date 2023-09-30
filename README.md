@@ -47,6 +47,7 @@ With pattern Handler, Usecase, Repository
 - [x] Struct MarshalJSON (Custom representation)
 - [ ] Open API with API KEY middleware
 - [x] Upload Files
+- [ ] Remove Files
 - [ ] Upload Videos
 - [ ] Create thumbnail from videos
 - [x] Upload Images and Compress Image with libvips

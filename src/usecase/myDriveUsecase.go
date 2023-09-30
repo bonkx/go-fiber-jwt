@@ -23,6 +23,83 @@ func NewMyDriveUsecase(md models.MyDriveRepository, user models.UserRepository) 
 	}
 }
 
+// Delete implements models.MyDriveUsecase.
+func (uc *MyDriveUsecase) Delete(c *fiber.Ctx) *fiber.Error {
+	id := c.Params("id")
+
+	user, errLocal := c.Locals("user").(models.User)
+	if !errLocal {
+		return fiber.NewError(500, utils.ERR_CURRENT_USER_NOT_FOUND)
+	}
+
+	// get data
+	obj, err := uc.dRepo.Get(id)
+	if err != nil {
+		return err
+	}
+
+	// check the owner of data
+	if obj.UserID != user.ID {
+		return fiber.NewError(403, utils.ERR_FORBIDDEN_UPDATE)
+	}
+
+	// deleted obj
+	err = uc.dRepo.Delete(obj)
+	if err != nil {
+		return err
+	}
+
+	// Removing file from server
+	utils.RemoveFileSilence(obj.Link)
+
+	return nil
+}
+
+// Update implements models.MyDriveUsecase.
+func (uc *MyDriveUsecase) Update(c *fiber.Ctx, payload models.MyDriveRenameInput) (models.MyDrive, *fiber.Error) {
+	id := c.Params("id")
+	obj := models.MyDrive{}
+
+	// get data
+	obj, err := uc.dRepo.Get(id)
+	if err != nil {
+		return obj, err
+	}
+
+	user, errLocal := c.Locals("user").(models.User)
+	if !errLocal {
+		return obj, fiber.NewError(500, utils.ERR_CURRENT_USER_NOT_FOUND)
+	}
+
+	// check the owner of data
+	if obj.UserID != user.ID {
+		return obj, fiber.NewError(403, utils.ERR_FORBIDDEN_UPDATE)
+	}
+
+	// fill update data
+	obj.Name = payload.Name
+
+	// do update
+	obj, err = uc.dRepo.Update(obj)
+	if err != nil {
+		return obj, err
+	}
+
+	return obj, nil
+}
+
+// Get implements models.MyDriveUsecase.
+func (uc *MyDriveUsecase) Get(c *fiber.Ctx) (models.MyDrive, *fiber.Error) {
+	id := c.Params("id")
+
+	obj, err := uc.dRepo.Get(id)
+	if err != nil {
+		return obj, err
+	}
+
+	return obj, nil
+}
+
 // Create implements models.MyDriveUsecase.
 func (uc *MyDriveUsecase) Create(c *fiber.Ctx) ([]*models.MyDrive, *fiber.Error) {
 	var listObj []*models.MyDrive

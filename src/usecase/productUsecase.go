@@ -23,7 +23,9 @@ func NewProductUsecase(product models.ProductRepository, user models.UserReposit
 }
 
 // Delete implements models.ProductUsecase.
-func (uc *ProductUsecase) Delete(c *fiber.Ctx, id uint) *fiber.Error {
+func (uc *ProductUsecase) Delete(c *fiber.Ctx) *fiber.Error {
+	id := utils.StringToUint(c.Params("id"))
+
 	user, errLocal := c.Locals("user").(models.User)
 	if !errLocal {
 		return fiber.NewError(500, utils.ERR_CURRENT_USER_NOT_FOUND)
@@ -50,8 +52,10 @@ func (uc *ProductUsecase) Delete(c *fiber.Ctx, id uint) *fiber.Error {
 }
 
 // Update implements models.ProductUsecase.
-func (uc *ProductUsecase) Update(c *fiber.Ctx, id uint, payload models.ProductInput) (models.Product, *fiber.Error) {
+func (uc *ProductUsecase) Update(c *fiber.Ctx, payload models.ProductInput) (models.Product, *fiber.Error) {
 	obj := models.Product{}
+	id := utils.StringToUint(c.Params("id"))
+
 	// get product data
 	obj, err := uc.pRepo.GetProduct(id)
 	if err != nil {
@@ -90,7 +94,7 @@ func (uc *ProductUsecase) Update(c *fiber.Ctx, id uint, payload models.ProductIn
 	obj.Description = payload.Description
 	obj.Price = payload.Price
 
-	// do update user
+	// do update
 	obj, err = uc.pRepo.Update(obj)
 	if err != nil {
 		return obj, err

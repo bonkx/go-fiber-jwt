@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"myapp/pkg/response"
+	"myapp/pkg/utils"
 	"os"
 	"strings"
 
@@ -31,6 +32,10 @@ type MyDrive struct {
 	// User   User `gorm:"foreignkey:UserID;constraint:OnDelete:CASCADE;" json:"-"`
 }
 
+type MyDriveRenameInput struct {
+	Name string `json:"name" form:"name" validate:"required,min=4"`
+}
+
 func (md *MyDrive) BeforeCreate(tx *gorm.DB) error {
 	uuid := uuid.New()
 	tx.Statement.SetColumn("ID", uuid)
@@ -44,12 +49,23 @@ func (md MyDrive) MarshalJSON() ([]byte, error) {
 		link = fmt.Sprintf("%s/%s", os.Getenv("CLIENT_ORIGIN"), md.Link)
 	}
 
+	// thumbnail allow null
+	var thumbnail *string = nil
+	if md.FileType == ImageFile || md.FileType == VideoFile {
+		thumbnail = utils.GetThumbnail(md.Link)
+		if thumbnail != nil {
+			*thumbnail = fmt.Sprintf("%s/%s", os.Getenv("CLIENT_ORIGIN"), *thumbnail)
+		}
+	}
+
 	aux := struct {
 		Alias
-		Link string `json:"link"`
+		Link      string  `json:"link"`
+		Thumbnail *string `json:"thumbnail"`
 	}{
-		Alias: (Alias)(md),
-		Link:  link,
+		Alias:     (Alias)(md),
+		Link:      link,
+		Thumbnail: thumbnail,
 	}
 	return json.Marshal(aux)
 }
@@ -57,11 +73,10 @@ func (md MyDrive) MarshalJSON() ([]byte, error) {
 type MyDriveUsecase interface {
 	// USECASE
 	MyDrive(c *fiber.Ctx) (*response.Pagination, *fiber.Error)
-	// Get(c *fiber.Ctx) (MyDrive, *fiber.Error)
+	Get(c *fiber.Ctx) (MyDrive, *fiber.Error)
 	Create(c *fiber.Ctx) ([]*MyDrive, *fiber.Error)
-	// Update(c *fiber.Ctx, id uint) (MyDrive, *fiber.Error)
-	// Delete(c *fiber.Ctx, id uint) *fiber.Error
-
+	Update(c *fiber.Ctx, payload MyDriveRenameInput) (MyDrive, *fiber.Error)
+	Delete(c *fiber.Ctx) *fiber.Error
 }
 
 type MyDriveRepository interface {
@@ -69,5 +84,8 @@ type MyDriveRepository interface {
 
 	// REPOS
 	MyDrive(user User, param response.ParamsPagination) (*response.Pagination, *fiber.Error)
-	Create(md MyDrive) (MyDrive, *fiber.Error)
+	Get(id string) (MyDrive, *fiber.Error)
+	Create(obj MyDrive) (MyDrive, *fiber.Error)
+	Update(obj MyDrive) (MyDrive, *fiber.Error)
+	Delete(obj MyDrive) *fiber.Error
 }

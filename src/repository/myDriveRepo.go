@@ -2,6 +2,7 @@ package repository
 
 import (
 	"myapp/pkg/response"
+	"myapp/pkg/utils"
 	"myapp/src/models"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -14,6 +15,37 @@ type MyDriveRepository struct {
 
 func NewMyDriveRepository(Conn *gorm.DB) models.MyDriveRepository {
 	return &MyDriveRepository{Conn}
+}
+
+// Delete implements models.MyDriveRepository.
+func (r *MyDriveRepository) Delete(obj models.MyDrive) *fiber.Error {
+	// delete permanent obj
+	err := r.DB.Unscoped().Delete(&obj).Error
+	if err != nil {
+		return fiber.NewError(500, err.Error())
+	}
+
+	return nil
+}
+
+// Get implements models.MyDriveRepository.
+func (r *MyDriveRepository) Get(id string) (models.MyDrive, *fiber.Error) {
+	var obj models.MyDrive
+	result := r.DB.First(&obj, "id = ?", id)
+	if result.RowsAffected == 0 {
+		return obj, fiber.NewError(404, utils.ERR_DATA_NOT_FOUND)
+	}
+	return obj, nil
+}
+
+// Update implements models.MyDriveRepository.
+func (r *MyDriveRepository) Update(obj models.MyDrive) (models.MyDrive, *fiber.Error) {
+	err := r.DB.UpdateColumns(&obj).Error
+	if err != nil {
+		return obj, fiber.NewError(500, err.Error())
+	}
+
+	return obj, nil
 }
 
 // Create implements models.MyDriveRepository.
