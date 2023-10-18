@@ -59,14 +59,14 @@ func MigrateDB() {
 
 	// Migrate the database
 	// DB.AutoMigrate(
-	// 	// &models.User{},
-	// 	// &models.UserProfile{},
-	// 	// &models.OTPRequest{},
-	// 	// &models.Product{},
+	// 	// 	&models.User{},
+	// 	// 	&models.UserProfile{},
+	// 	// 	&models.OTPRequest{},
+	// 	// 	&models.Product{},
 	// 	&models.MyDrive{},
 	// )
 
-	// fmt.Println("👍 Migration complete")
+	fmt.Println("👍 Migration complete")
 
 	// Initialize Status
 	// DB.AutoMigrate(&models.Status{})

@@ -6,6 +6,28 @@ With pattern Handler, Usecase, Repository
 
 ---
 
+## How to Run
+
+```bash
+# clone the repo
+$ git clone repo
+
+# go into repo's directory
+$ cd repo
+
+# copy and edit env file
+$ cp .env.example .env
+
+# seeds data to database like status
+$ db migrate, edit pkg/configs/connect_db.go
+
+# build docker
+$ make build
+
+# start docker
+$ make run
+```
+
 ### Todo List
 
 - [x] Fiber Log file, Favicon
@@ -47,9 +69,9 @@ With pattern Handler, Usecase, Repository
 - [x] Struct MarshalJSON (Custom representation)
 - [ ] Open API with API KEY middleware
 - [x] Upload Files
-- [ ] Remove Files
-- [ ] Upload Videos
-- [ ] Create thumbnail from videos
+- [x] Remove Files
+- [x] Upload Videos
+- [x] Create thumbnail from videos with ffmpeg
 - [x] Upload Images and Compress Image with libvips
 - [x] Create thumbnail from image
 - [x] Image Processing with [libvips](https://www.libvips.org/)
@@ -62,59 +84,6 @@ go to [https://www.libvips.org/](https://www.libvips.org/)
 
 ---
 
-### Data
-
-- [ ] User (Admin)
-  - [ ] List
-  - [ ] Get
-  - [ ] Create
-  - [ ] Update (Upload Photo)
-  - [ ] Delete
-  - [ ] List User Deleted
-  - [ ] Hard Delete (constraint:OnDelete:CASCADE)
-  - [ ] Activated User
-  - [ ] De Activated User
-  - [ ] List User Activity
-  - [ ] Get List User Activity by ID
-  - [ ] Get List User Wishlist by ID
-- [ ] API Key (Admin)
-  - [ ] Original API Key
-  - [ ] List with encode
-  - [ ] Get with encode
-  - [ ] Create
-  - [ ] Revoke
-  - [ ] Middleware API Key
-- [ ] User
-  - [ ] Verify Email
-  - [ ] Profile
-  - [ ] Update Profile
-  - [ ] Upload Photo Profile
-  - [ ] Request Forgot Password and send link change password to email
-  - [ ] Change Password
-  - [ ] Deletion Account
-  - [ ] List Wishlist
-  - [ ] Post Wishlist
-  - [ ] Post UnWishlist
-  - [ ] Save User Activity (last login at, ip address)
-- [ ] Fact
-  - [ ] List
-  - [ ] Get
-  - [ ] Create
-  - [ ] Update
-  - [ ] Delete
-- [ ] Products
-  - [ ] Populate
-  - [ ] List
-  - [ ] Get
-  - [ ] Create
-  - [ ] Update
-  - [ ] Delete
-- [ ] Merchants
-  - [ ] List
-  - [ ] Get
-  - [ ] Create
-  - [ ] Update
-  - [ ] Delete (De Activated)
 
 ### Credit
 

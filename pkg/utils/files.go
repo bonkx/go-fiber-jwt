@@ -1,12 +1,14 @@
 package utils
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
 	"log"
 	"mime/multipart"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -110,14 +112,14 @@ func FileUpload(c *fiber.Ctx, fileHeader *multipart.FileHeader, uploadTo string)
 		}
 	} else if filetype.IsVideo(buffer) {
 		// if video
+		filename, err = videoProcessing(c, fileHeader, filePath)
+		if err != nil {
+			return "", errors.New(err.Error())
+		}
 	} else {
 		// if others file
 		filename, err = fileProcessing(c, fileHeader, filePath)
 		if err != nil {
-			return "", errors.New(err.Error())
-		}
-		errSave := c.SaveFile(fileHeader, fmt.Sprintf("%s/%s", filePath, filename))
-		if errSave != nil {
 			return "", errors.New(err.Error())
 		}
 	}
@@ -162,14 +164,14 @@ func imageProcessing(buffer []byte, dirname string) (string, error) {
 	}
 
 	// write media
-	writeError := bimg.Write(fmt.Sprintf("./"+dirname+"/%s", filename), processed)
+	writeError := bimg.Write(fmt.Sprintf("./%s/%s", dirname, filename), processed)
 	if writeError != nil {
 		return filename, writeError
 	}
 
 	// create thumbnail
 	_thumbnail, err := bimg.NewImage(converted).Thumbnail(200)
-	thumbWriteError := bimg.Write(fmt.Sprintf("./"+dirname+"/%s", thumbnail_name), _thumbnail)
+	thumbWriteError := bimg.Write(fmt.Sprintf("./%s/%s", dirname, thumbnail_name), _thumbnail)
 	if thumbWriteError != nil {
 		return filename, writeError
 	}
@@ -213,9 +215,91 @@ func fileProcessing(c *fiber.Ctx, file *multipart.FileHeader, dirname string) (s
 	filename := fmt.Sprintf("%s%s", name, fileExt)
 
 	// save file
-	errSave := c.SaveFile(file, fmt.Sprintf("./"+dirname+"/%s", filename))
+	errSave := c.SaveFile(file, fmt.Sprintf("./%s/%s", dirname, filename))
 	if errSave != nil {
 		return "", errors.New(errSave.Error())
+	}
+
+	return filename, nil
+}
+
+func videoProcessing(c *fiber.Ctx, file *multipart.FileHeader, dirname string) (string, error) {
+
+	// rename file
+	uniqueId := uuid.New()
+	name := strings.Replace(uniqueId.String(), "-", "", -1)
+	fileExt := filepath.Ext(file.Filename)
+	filename := fmt.Sprintf("%s%s", name, fileExt)
+	dirFile := fmt.Sprintf("./%s/%s", dirname, filename)
+	thumbnailName := name + "_thumbnail.webp"
+	dirThumb := fmt.Sprintf("./%s/%s", dirname, thumbnailName)
+
+	// save video file
+	errSave := c.SaveFile(file, dirFile)
+	if errSave != nil {
+		return "", errors.New(errSave.Error())
+	}
+
+	// log.Print("Creating thumbnail..")
+	// width := 640
+	// height := 360
+	// log.Print("Size of the video: ", len(buffer))
+	timeVid := "00:00:01.000"
+	var imageBuffer bytes.Buffer
+	cmd := exec.Command("ffmpeg", "-ss", timeVid, "-i", dirFile, "-f", "image2", "-vframes", "1", "-")
+	cmd.Stdout = &imageBuffer
+	// log.Println("cmd.Stdout: ", imageBuffer)
+
+	if cmd.Run() != nil {
+		panic("could not generate frame")
+	}
+
+	imageBytes := imageBuffer.Bytes()
+	// log.Print("Size of the image: ", len(imageBytes))
+
+	// generate image thumbnail from byte
+	_, errThumb := videoThumbnailProcessing(imageBytes, dirThumb)
+	if errThumb != nil {
+		return "", errors.New(errThumb.Error())
+	}
+	// log.Println("thumbnailName: ", thumbnailName)
+
+	return filename, nil
+}
+
+func videoThumbnailProcessing(buffer []byte, dirFile string) (string, error) {
+	filename := filepath.Base(dirFile)
+
+	// options := bimg.Options{
+	// 	Quality:       90,
+	// 	StripMetadata: false,
+	// }
+
+	rorated, err := bimg.NewImage(buffer).AutoRotate()
+	if err != nil {
+		return "", err
+	}
+
+	resized, err := resizeImage(rorated)
+	if err != nil {
+		return "", err
+	}
+
+	converted, err := bimg.NewImage(resized).Convert(bimg.WEBP)
+	if err != nil {
+		return "", err
+	}
+
+	// processed, err := bimg.NewImage(converted).Process(options)
+	// if err != nil {
+	// 	return "", err
+	// }
+
+	// create thumbnail
+	_thumbnail, err := bimg.NewImage(converted).Thumbnail(200)
+	thumbWriteError := bimg.Write(fmt.Sprintf("./%s", dirFile), _thumbnail)
+	if thumbWriteError != nil {
+		return "", thumbWriteError
 	}
 
 	return filename, nil
@@ -235,14 +319,34 @@ func GetThumbnail(fileName string) *string {
 	return &thumbnailName
 }
 
+func GetThumbnailVideo(fileName string) *string {
+	dirPath := filepath.Dir(fileName)
+	fileExt := ".webp"
+
+	filename := filepath.Base(fileName)
+	// fmt.Println("filename: ", filename)
+	// fmt.Println("fileNameOnly: ", fileNameOnly)
+	fileNameOnly := FileNameWithoutExtSliceNotation(filename)
+
+	thumbnailName := fmt.Sprintf("%s/%s_thumbnail%s", dirPath, fileNameOnly, fileExt)
+
+	return &thumbnailName
+}
+
 func FileNameWithoutExtSliceNotation(fileName string) string {
 	return fileName[:len(fileName)-len(filepath.Ext(fileName))]
 }
 
-func RemoveFileSilence(fileUrl string) error {
+func RemoveFileSilence(fileUrl string, fileType string) error {
 	originFile := fileUrl
 	// fmt.Println("originFile: ", originFile)
-	thumbnailName := GetThumbnail(fileUrl)
+
+	var thumbnailName *string
+	if fileType == "V" {
+		thumbnailName = GetThumbnailVideo(fileUrl)
+	} else {
+		thumbnailName = GetThumbnail(fileUrl)
+	}
 	// fmt.Println("thumbnailName: ", thumbnailName)
 
 	// Using Remove() function
@@ -255,6 +359,8 @@ func RemoveFileSilence(fileUrl string) error {
 	os.Remove(originFile)
 	// remove thumbnail
 	os.Remove(*thumbnailName)
+	// remove fiber gz
+	os.Remove(originFile + ".fiber.gz")
 
 	return nil
 }

@@ -37,7 +37,7 @@ type MyDriveRenameInput struct {
 }
 
 func (md *MyDrive) BeforeCreate(tx *gorm.DB) error {
-	uuid := uuid.New()
+	uuid := uuid.NewString()
 	tx.Statement.SetColumn("ID", uuid)
 	return nil
 }
@@ -51,8 +51,18 @@ func (md MyDrive) MarshalJSON() ([]byte, error) {
 
 	// thumbnail allow null
 	var thumbnail *string = nil
-	if md.FileType == ImageFile || md.FileType == VideoFile {
+
+	// thumbnail for image file
+	if md.FileType == ImageFile {
 		thumbnail = utils.GetThumbnail(md.Link)
+		if thumbnail != nil {
+			*thumbnail = fmt.Sprintf("%s/%s", os.Getenv("CLIENT_ORIGIN"), *thumbnail)
+		}
+	}
+
+	// thumbnail for video file
+	if md.FileType == VideoFile {
+		thumbnail = utils.GetThumbnailVideo(md.Link)
 		if thumbnail != nil {
 			*thumbnail = fmt.Sprintf("%s/%s", os.Getenv("CLIENT_ORIGIN"), *thumbnail)
 		}

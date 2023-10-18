@@ -5,6 +5,7 @@ import (
 	"myapp/pkg/response"
 	"myapp/pkg/utils"
 	"myapp/src/models"
+	"os/exec"
 	"strconv"
 	"strings"
 
@@ -50,7 +51,7 @@ func (uc *MyDriveUsecase) Delete(c *fiber.Ctx) *fiber.Error {
 	}
 
 	// Removing file from server
-	utils.RemoveFileSilence(obj.Link)
+	utils.RemoveFileSilence(obj.Link, string(obj.FileType))
 
 	return nil
 }
@@ -96,6 +97,23 @@ func (uc *MyDriveUsecase) Get(c *fiber.Ctx) (models.MyDrive, *fiber.Error) {
 	if err != nil {
 		return obj, err
 	}
+
+	// create a new *Cmd instance
+	// here we pass the command as the first argument and the arguments to pass to the command as the
+	// remaining arguments in the function
+	// cmdArgs := fmt.Sprintf("-i %s -vf \"thumbnail\" -frames:v 1 %s", dirFile, dirThumb)
+	// cmd := exec.Command("ffmpeg", cmdArgs)
+	cmd := exec.Command("ffmpeg", "-version")
+
+	// The `Output` method executes the command and
+	// collects the output, returning its value
+	out, errO := cmd.Output()
+	if errO != nil {
+		// if there was any error, print it here
+		fmt.Println("could not run command: ", errO)
+	}
+	// otherwise, print the output from running the command
+	fmt.Println("Output: ", string(out))
 
 	return obj, nil
 }
